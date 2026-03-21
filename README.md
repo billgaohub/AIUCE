@@ -1,7 +1,13 @@
-# AIUCE System
-# AIUCE 系统
+# AIUCE System 🏯
+
+[![CI](https://github.com/billgaohub/AIUCE/actions/workflows/ci.yml/badge.svg)](https://github.com/billgaohub/AIUCE/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](https://www.docker.com/)
 
 > **AIUCE** = **A**I System + **U**niverse + **C**onstitution + **E**volution
+>
+> Personal AI Infrastructure with Layered Governance
 
 AIUCE 不仅是本项目的代号，更是这套 Personal AI Infrastructure 核心运行机制的微缩密码。它由四个代表系统底层哲学的核心概念缩写而成，完美映射了我们基于「十一层架构」的分层治理、主权制衡与渐进式演化思想。
 
@@ -126,4 +132,24 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 
 ---
 
-**AIUCE** - Personal AI Infrastructure with Layered Governance
+## 📚 文档
+
+- [快速开始](QUICKSTART.md) - 5分钟上手
+- [架构设计](docs/architecture.md) - 深入了解十一层架构
+- [API 参考](docs/api_reference.md) - 完整的 API 文档
+- [设计哲学](docs/philosophy.md) - AIUCE 的设计思想
+- [贡献指南](CONTRIBUTING.md) - 如何参与贡献
+- [更新日志](CHANGELOG.md) - 版本历史
+
+## 🤝 贡献
+
+我们欢迎所有形式的贡献！请查看 [CONTRIBUTING.md](CONTRIBUTING.md) 了解如何参与。
+
+## 📄 许可证
+
+本项目采用 [MIT License](LICENSE) 开源协议。
+
+---
+
+**AIUCE** - Personal AI Infrastructure with Layered Governance  
+🏯 治大国若烹小鲜
