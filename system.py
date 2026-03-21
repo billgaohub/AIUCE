@@ -90,7 +90,8 @@ class ElevenLayerSystem:
         self._init_audit()
         self._setup_message_routes()
         print(f"\n{'━' * 60}")
-        print(f"  🏯 十一层架构系统 v{self.version} 初始化完成")
+        print(f"  🏯 AIUCE System v{self.version} 初始化完成")
+        print(f"  AI Universe Constitution Evolution")
         print(f"  一票否决权: L0 秦始皇 | 人设边界: L1 诸葛亮")
         print(f"{'━' * 60}\n")
 

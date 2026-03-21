@@ -19,8 +19,8 @@ from system import ElevenLayerSystem, create_system
 
 # 创建 FastAPI 应用
 app = FastAPI(
-    title="十一层架构 AI 系统 API",
-    description="Eleven-Layer Architecture AI System API",
+    title="AIUCE System API",
+    description="AIUCE - AI Universe Constitution Evolution System API",
     version="1.0.0"
 )
 
