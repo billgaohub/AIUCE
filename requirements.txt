@@ -1,0 +1,36 @@
+# Python dependencies for Eleven-Layer AI System
+# 十一层架构 AI 系统依赖
+
+# Core dependencies
+numpy>=1.24.0
+pydantic>=2.0.0
+pyyaml>=6.0
+typing-extensions>=4.5.0
+
+# AI/ML
+openai>=1.0.0
+anthropic>=0.8.0
+
+# HTTP requests
+requests>=2.31.0
+httpx>=0.25.0
+aiohttp>=3.9.0
+
+# Data processing
+pandas>=2.0.0
+
+# Utilities
+tenacity>=8.2.0
+python-dateutil>=2.8.0
+
+# Optional: For advanced features
+# transformers>=4.30.0  # Hugging Face models
+# torch>=2.0.0          # PyTorch
+# chromadb>=0.4.0       # Vector database
+# sentence-transformers>=2.2.0  # Embeddings
+
+# Development dependencies (optional)
+# pytest>=7.4.0
+# black>=23.0.0
+# mypy>=1.5.0
+# flake8>=6.0.0

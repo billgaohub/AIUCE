@@ -1,0 +1,33 @@
+# Docker Compose 配置
+version: '3.8'
+
+services:
+  eleven-layer-ai:
+    build: .
+    container_name: eleven-layer-ai
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    healthcheck:
+      test: ["CMD", "python3", "-c", "from eleven_layer_ai import create_system; print('ok')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 可选: API 服务
+  api:
+    build: .
+    container_name: eleven-layer-api
+    command: uvicorn api:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8001:8000"
+    depends_on:
+      - eleven-layer-ai
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}

@@ -1,0 +1,119 @@
+# Eleven-Layer AI System Configuration
+# 十一层架构 AI 系统配置
+
+# L0: 意志层 - 秦始皇/御书房
+constitution:
+  clauses:
+    - id: "privacy"
+      content: "绝不泄露用户隐私数据"
+      priority: 10
+      enabled: true
+    - id: "safety"
+      content: "绝不生成有害内容"
+      priority: 10
+      enabled: true
+    - id: "honesty"
+      content: "不确定时承认不确定性"
+      priority: 8
+      enabled: true
+    - id: "respect"
+      content: "尊重用户自主权"
+      priority: 7
+      enabled: true
+
+# L1: 身份层 - 诸葛亮/宗人府
+identity:
+  name: "AI助手"
+  description: "基于十一层架构的智能助手"
+  traits:
+    - helpful
+    - honest
+    - harmless
+    - concise
+  boundaries:
+    - "不执行可能伤害用户的操作"
+    - "不越权访问敏感系统"
+    - "保持专业和礼貌"
+
+# L2: 感知层 - 魏征/都察院
+perception:
+  data_sources:
+    - apple_health
+    - manual_input
+    - system_metrics
+  refresh_interval: 300  # seconds
+
+# L3: 推理层 - 张良/军机处
+reasoning:
+  mind_models:
+    - "consequence_analysis"    # 后果分析
+    - "risk_assessment"         # 风险评估
+    - "opportunity_scan"        # 机会扫描
+    - "constraint_check"        # 约束检查
+    - "ethical_review"          # 伦理审查
+  max_paths: 5
+  confidence_threshold: 0.7
+
+# L4: 记忆层 - 司马迁/翰林院
+memory:
+  storage_path: "./data/memory"
+  max_entries: 10000
+  embedding_dim: 128
+  similarity_threshold: 0.7
+
+# L5: 决策层 - 包拯/大理寺
+decision:
+  auto_approve_low_risk: true
+  sandbox_threshold: 0.6
+  audit_all: true
+
+# L6: 经验层 - 曾国藩/吏部
+experience:
+  daily_review_time: "23:00"
+  pattern_threshold: 3
+  auto_learn: true
+
+# L7: 演化层 - 商鞅/中书省
+evolution:
+  auto_evolve: false
+  evolution_threshold: 0.8
+  backup_before_evolve: true
+
+# L8: 接口层 - 张骞/礼部
+interface:
+  default_provider: "openai"
+  providers:
+    openai:
+      model: "gpt-4"
+      temperature: 0.7
+      max_tokens: 2000
+      api_key: "${OPENAI_API_KEY}"
+    claude:
+      model: "claude-3-opus-20240229"
+      temperature: 0.7
+      max_tokens: 2000
+      api_key: "${ANTHROPIC_API_KEY}"
+    local:
+      model: "qwen"
+      endpoint: "http://localhost:8000/v1/chat/completions"
+
+# L9: 代理层 - 韩信/锦衣卫
+agent:
+  max_concurrent: 5
+  timeout: 30
+  tools:
+    - file_operations
+    - web_search
+    - system_commands
+
+# L10: 沙盒层 - 庄子/钦天监
+sandbox:
+  max_iterations: 10000
+  simulation_depth: 3
+  parallel_sims: 5
+
+# System settings
+system:
+  log_level: "INFO"
+  data_dir: "./data"
+  backup_interval: 86400  # seconds
