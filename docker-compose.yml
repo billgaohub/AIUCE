@@ -1,33 +1,56 @@
 # Docker Compose 配置
+# AIUCE 十一层架构 AI 系统
+
 version: '3.8'
 
 services:
-  eleven-layer-ai:
+  # API 服务
+  aiuce-api:
     build: .
-    container_name: eleven-layer-ai
+    container_name: aiuce-api
     restart: unless-stopped
     ports:
       - "8000:8000"
     volumes:
       - ./data:/app/data
+      - ./logs:/app/logs
       - ./config.yaml:/app/config.yaml:ro
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # 安全配置
+      - AIUCE_API_KEYS=${AIUCE_API_KEYS:-}
+      - AIUCE_AUTH_ENABLED=${AIUCE_AUTH_ENABLED:-true}
+      - AIUCE_RATE_LIMIT=${AIUCE_RATE_LIMIT:-100}
+      - AIUCE_CORS_ORIGINS=${AIUCE_CORS_ORIGINS:-*}
+      - AIUCE_LOG_LEVEL=${AIUCE_LOG_LEVEL:-INFO}
+      # 模型 API Keys
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
     healthcheck:
-      test: ["CMD", "python3", "-c", "from eleven_layer_ai import create_system; print('ok')"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 10s
 
-  # 可选: API 服务
-  api:
-    build: .
-    container_name: eleven-layer-api
-    command: uvicorn api:app --host 0.0.0.0 --port 8000
-    ports:
-      - "8001:8000"
-    depends_on:
-      - eleven-layer-ai
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+  # 可选: 本地 Ollama 模型服务
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: aiuce-ollama
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+
+volumes:
+  data:
+  logs:
+  # ollama_data:

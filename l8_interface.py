@@ -12,6 +12,30 @@ from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
+import os
+import logging
+
+# 配置日志
+logger = logging.getLogger("aiuce.l8")
+
+# HTTP 客户端（延迟导入）
+try:
+    import httpx
+    HAS_HTTPX = True
+except ImportError:
+    HAS_HTTPX = False
+
+try:
+    from openai import OpenAI
+    HAS_OPENAI = True
+except ImportError:
+    HAS_OPENAI = False
+
+try:
+    from anthropic import Anthropic
+    HAS_ANTHROPIC = True
+except ImportError:
+    HAS_ANTHROPIC = False
 
 
 @dataclass
@@ -58,7 +82,11 @@ class InterfaceLayer:
         self.last_responses: Dict[str, ModelResponse] = {}
         self.request_history: List[Dict] = []
         
+        # API 客户端缓存
+        self._clients: Dict[str, Any] = {}
+        
         self._init_providers()
+        self._check_available()
 
     def _init_providers(self):
         """初始化模型提供商"""
@@ -68,9 +96,9 @@ class InterfaceLayer:
                 name="OpenAI",
                 endpoint="https://api.openai.com/v1/chat/completions",
                 api_key_env="OPENAI_API_KEY",
-                model_name="gpt-4",
+                model_name="gpt-4o-mini",
                 capability=["reasoning", "coding", "creative", "analysis"],
-                cost_per_1k=0.03,
+                cost_per_1k=0.00015,
                 latency_ms=1000
             ),
             ModelProvider(
@@ -78,7 +106,7 @@ class InterfaceLayer:
                 name="Anthropic Claude",
                 endpoint="https://api.anthropic.com/v1/messages",
                 api_key_env="ANTHROPIC_API_KEY",
-                model_name="claude-3-5-sonnet",
+                model_name="claude-3-5-sonnet-20241022",
                 capability=["reasoning", "writing", "analysis", "safety"],
                 cost_per_1k=0.003,
                 latency_ms=1200
@@ -94,6 +122,16 @@ class InterfaceLayer:
                 latency_ms=800
             ),
             ModelProvider(
+                provider_id="deepseek",
+                name="DeepSeek",
+                endpoint="https://api.deepseek.com/v1/chat/completions",
+                api_key_env="DEEPSEEK_API_KEY",
+                model_name="deepseek-chat",
+                capability=["reasoning", "coding", "chinese", "fast"],
+                cost_per_1k=0.001,
+                latency_ms=600
+            ),
+            ModelProvider(
                 provider_id="local",
                 name="本地模型",
                 endpoint="http://localhost:11434/v1/chat/completions",
@@ -103,11 +141,82 @@ class InterfaceLayer:
                 cost_per_1k=0,
                 latency_ms=200
             ),
+            ModelProvider(
+                provider_id="mlx",
+                name="MLX 本地模型",
+                endpoint="http://localhost:8080/v1/chat/completions",
+                api_key_env="",
+                model_name="qwen2.5-7b",
+                capability=["fast", "offline", "privacy", "reasoning"],
+                cost_per_1k=0,
+                latency_ms=100
+            ),
         ]
         
         for provider in default_providers:
             self.providers[provider.provider_id] = provider
-        print(f"  [L8] 加载 {len(self.providers)} 个算力提供商")
+        
+        logger.info(f"[L8] 加载 {len(self.providers)} 个算力提供商")
+
+    def _check_available(self):
+        """检查各提供商可用性"""
+        for provider_id, provider in self.providers.items():
+            if provider_id == "local":
+                # 检查本地 Ollama
+                provider.available = self._check_local_endpoint(provider.endpoint)
+            elif provider_id == "mlx":
+                # 检查 MLX 服务
+                provider.available = self._check_local_endpoint(provider.endpoint)
+            else:
+                # 云端：检查 API Key
+                api_key = os.environ.get(provider.api_key_env, "")
+                provider.available = bool(api_key)
+            
+            status = "✅" if provider.available else "❌"
+            logger.info(f"  {status} {provider.name}: {provider.model_name}")
+
+    def _check_local_endpoint(self, endpoint: str) -> bool:
+        """检查本地端点是否可用"""
+        if not HAS_HTTPX:
+            return False
+        try:
+            # 尝试连接
+            base_url = endpoint.rsplit("/v1/", 1)[0]
+            resp = httpx.get(f"{base_url}/v1/models", timeout=2.0)
+            return resp.status_code == 200
+        except Exception:
+            return False
+
+    def _get_client(self, provider: ModelProvider) -> Optional[Any]:
+        """获取或创建 API 客户端"""
+        if provider.provider_id in self._clients:
+            return self._clients[provider.provider_id]
+        
+        client = None
+        
+        if provider.provider_id == "openai" and HAS_OPENAI:
+            api_key = os.environ.get(provider.api_key_env, "")
+            if api_key:
+                client = OpenAI(api_key=api_key)
+        
+        elif provider.provider_id == "claude" and HAS_ANTHROPIC:
+            api_key = os.environ.get(provider.api_key_env, "")
+            if api_key:
+                client = Anthropic(api_key=api_key)
+        
+        elif provider.provider_id in ("qwen", "deepseek", "local", "mlx"):
+            # 使用 OpenAI 兼容接口
+            if HAS_OPENAI:
+                api_key = os.environ.get(provider.api_key_env, "sk-dummy")
+                client = OpenAI(
+                    api_key=api_key,
+                    base_url=provider.endpoint.rsplit("/v1/", 1)[0] + "/v1"
+                )
+        
+        if client:
+            self._clients[provider.provider_id] = client
+        
+        return client
 
     def call_model(
         self,
@@ -125,24 +234,17 @@ class InterfaceLayer:
         # 1. 选择模型
         provider = self._select_provider(preferred_provider, reasoning)
         
-        # 2. 构建请求
-        full_prompt = self._build_prompt(prompt, context, reasoning, system_prompt)
+        # 2. 构建消息
+        messages = self._build_messages(prompt, context, system_prompt)
         
         # 3. 发送请求
         start_time = datetime.now()
-        try:
-            response = self._send_request(provider, full_prompt)
-        except Exception as e:
-            response = ModelResponse(
-                provider=provider.provider_id,
-                model=provider.model_name,
-                content="",
-                tokens_used=0,
-                latency_ms=0,
-                timestamp=datetime.now().isoformat(),
-                success=False,
-                error=str(e)
-            )
+        
+        # 检查是否使用模拟模式
+        if self.config.get("mock", False):
+            response = self._mock_response(provider, prompt)
+        else:
+            response = self._send_real_request(provider, messages)
         
         end_time = datetime.now()
         response.latency_ms = int((end_time - start_time).total_seconds() * 1000)
@@ -158,11 +260,200 @@ class InterfaceLayer:
         })
         
         if response.success:
-            print(f"  [L8 张骞] 📡 {provider.name} → {response.content[:50]}...")
+            logger.info(f"[L8 张骞] 📡 {provider.name} → {response.content[:50]}...")
         else:
-            print(f"  [L8 张骞] ❌ {provider.name} 失败: {response.error}")
+            logger.warning(f"[L8 张骞] ❌ {provider.name} 失败: {response.error}")
         
         return response
+
+    def _build_messages(
+        self,
+        prompt: str,
+        context: List[Dict[str, Any]] = None,
+        system_prompt: str = None
+    ) -> List[Dict[str, str]]:
+        """构建消息列表"""
+        messages = []
+        
+        # 系统提示
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        else:
+            messages.append({
+                "role": "system",
+                "content": "你是 AIUCE，一个基于十一层架构的 AI 助手。简洁、准确地回答问题。"
+            })
+        
+        # 上下文（记忆）
+        if context:
+            context_text = "\n".join([
+                f"- {ctx.get('content', '')}" 
+                for ctx in context[:5]
+            ])
+            if context_text:
+                messages.append({
+                    "role": "user",
+                    "content": f"[相关记忆]\n{context_text}"
+                })
+                messages.append({
+                    "role": "assistant",
+                    "content": "已了解相关背景。"
+                })
+        
+        # 用户输入
+        messages.append({"role": "user", "content": prompt})
+        
+        return messages
+
+    def _send_real_request(
+        self,
+        provider: ModelProvider,
+        messages: List[Dict[str, str]]
+    ) -> ModelResponse:
+        """发送真实 API 请求"""
+        
+        # 特殊处理 Claude
+        if provider.provider_id == "claude":
+            return self._call_claude(provider, messages)
+        
+        # OpenAI 兼容接口
+        client = self._get_client(provider)
+        
+        if not client:
+            return ModelResponse(
+                provider=provider.provider_id,
+                model=provider.model_name,
+                content="",
+                tokens_used=0,
+                latency_ms=0,
+                timestamp=datetime.now().isoformat(),
+                success=False,
+                error=f"客户端未初始化或 API Key 未配置"
+            )
+        
+        try:
+            response = client.chat.completions.create(
+                model=provider.model_name,
+                messages=messages,
+                max_tokens=1000,
+                temperature=0.7
+            )
+            
+            content = response.choices[0].message.content
+            tokens_used = response.usage.total_tokens if response.usage else 0
+            
+            return ModelResponse(
+                provider=provider.provider_id,
+                model=provider.model_name,
+                content=content,
+                tokens_used=tokens_used,
+                latency_ms=0,  # 由调用者设置
+                timestamp=datetime.now().isoformat(),
+                success=True
+            )
+        
+        except Exception as e:
+            logger.error(f"[L8] API 调用失败: {e}")
+            return ModelResponse(
+                provider=provider.provider_id,
+                model=provider.model_name,
+                content="",
+                tokens_used=0,
+                latency_ms=0,
+                timestamp=datetime.now().isoformat(),
+                success=False,
+                error=str(e)
+            )
+
+    def _call_claude(
+        self,
+        provider: ModelProvider,
+        messages: List[Dict[str, str]]
+    ) -> ModelResponse:
+        """调用 Claude API"""
+        if not HAS_ANTHROPIC:
+            return ModelResponse(
+                provider=provider.provider_id,
+                model=provider.model_name,
+                content="",
+                tokens_used=0,
+                latency_ms=0,
+                timestamp=datetime.now().isoformat(),
+                success=False,
+                error="anthropic 库未安装"
+            )
+        
+        client = self._get_client(provider)
+        if not client:
+            return ModelResponse(
+                provider=provider.provider_id,
+                model=provider.model_name,
+                content="",
+                tokens_used=0,
+                latency_ms=0,
+                timestamp=datetime.now().isoformat(),
+                success=False,
+                error="Claude 客户端未初始化"
+            )
+        
+        try:
+            # 提取系统提示
+            system = ""
+            user_messages = []
+            for msg in messages:
+                if msg["role"] == "system":
+                    system = msg["content"]
+                else:
+                    user_messages.append(msg)
+            
+            response = client.messages.create(
+                model=provider.model_name,
+                max_tokens=1000,
+                system=system,
+                messages=user_messages
+            )
+            
+            content = response.content[0].text
+            tokens_used = response.usage.input_tokens + response.usage.output_tokens
+            
+            return ModelResponse(
+                provider=provider.provider_id,
+                model=provider.model_name,
+                content=content,
+                tokens_used=tokens_used,
+                latency_ms=0,
+                timestamp=datetime.now().isoformat(),
+                success=True
+            )
+        
+        except Exception as e:
+            logger.error(f"[L8] Claude API 调用失败: {e}")
+            return ModelResponse(
+                provider=provider.provider_id,
+                model=provider.model_name,
+                content="",
+                tokens_used=0,
+                latency_ms=0,
+                timestamp=datetime.now().isoformat(),
+                success=False,
+                error=str(e)
+            )
+
+    def _mock_response(
+        self,
+        provider: ModelProvider,
+        prompt: str
+    ) -> ModelResponse:
+        """模拟响应（测试用）"""
+        return ModelResponse(
+            provider=provider.provider_id,
+            model=provider.model_name,
+            content=f"[{provider.name} 模拟回复] 收到您的输入: {prompt[:30]}...",
+            tokens_used=len(prompt) // 4,
+            latency_ms=provider.latency_ms,
+            timestamp=datetime.now().isoformat(),
+            success=True
+        )
 
     def _select_provider(
         self,
@@ -170,82 +461,35 @@ class InterfaceLayer:
         reasoning: Dict[str, Any] = None
     ) -> ModelProvider:
         """选择最优模型提供商"""
+        # 1. 如果有指定且可用，直接使用
         if preferred and preferred in self.providers:
-            return self.providers[preferred]
+            provider = self.providers[preferred]
+            if provider.available:
+                return provider
         
-        # 智能选择
+        # 2. 智能选择
         available = [p for p in self.providers.values() if p.available]
         
         if not available:
-            # 如果没有可用的，降级到本地
-            return self.providers.get("local", list(self.providers.values())[0])
+            # 降级到本地
+            if "local" in self.providers:
+                return self.providers["local"]
+            if "mlx" in self.providers:
+                return self.providers["mlx"]
+            # 最后返回第一个
+            return list(self.providers.values())[0]
         
-        # 基于能力选择
+        # 基于推理需求选择
         if reasoning:
-            needed_caps = set()
-            # 根据推理结果选择
-            return available[0]
+            needed_caps = set(reasoning.get("required_capabilities", []))
+            if needed_caps:
+                for p in available:
+                    if needed_caps.issubset(set(p.capability)):
+                        return p
         
         # 默认选择成本最低的
         available.sort(key=lambda p: p.cost_per_1k)
         return available[0]
-
-    def _build_prompt(
-        self,
-        prompt: str,
-        context: List[Dict[str, Any]] = None,
-        reasoning: Dict[str, Any] = None,
-        system_prompt: str = None
-    ) -> str:
-        """构建完整提示词"""
-        parts = []
-        
-        # 系统提示
-        if system_prompt:
-            parts.append(f"[系统] {system_prompt}")
-        
-        # 上下文（记忆）
-        if context:
-            context_parts = []
-            for ctx in context[:5]:
-                context_parts.append(f"- {ctx.get('content', '')}")
-            if context_parts:
-                parts.append(f"[相关记忆]\n" + "\n".join(context_parts))
-        
-        # 推理结果
-        if reasoning:
-            rec = reasoning.get("recommendation", "")
-            if rec:
-                parts.append(f"[推理建议] {rec}")
-        
-        # 用户输入
-        parts.append(f"[用户] {prompt}")
-        
-        return "\n\n".join(parts)
-
-    def _send_request(
-        self,
-        provider: ModelProvider,
-        prompt: str
-    ) -> ModelResponse:
-        """发送请求到模型提供商"""
-        # 这里是简化实现，实际需要根据不同 provider 调用不同 API
-        
-        # 如果配置了模拟模式，返回模拟响应
-        if self.config.get("mock", True):
-            return ModelResponse(
-                provider=provider.provider_id,
-                model=provider.model_name,
-                content=f"[{provider.name} 回复] 这是一个基于十一层架构的响应。输入: {prompt[:30]}...",
-                tokens_used=len(prompt) // 4,
-                latency_ms=provider.latency_ms,
-                timestamp=datetime.now().isoformat(),
-                success=True
-            )
-        
-        # 实际 API 调用需要根据 provider 实现
-        # 这里留接口，实际使用时扩展
-        raise NotImplementedError(f"需要实现 {provider.provider_id} 的 API 调用")
 
     def get_provider(self, provider_id: str) -> Optional[ModelProvider]:
         """获取提供商信息"""
@@ -280,5 +524,6 @@ class InterfaceLayer:
             "total_requests": total,
             "success_rate": successes / total if total > 0 else 0,
             "providers": len(self.providers),
+            "available_providers": len([p for p in self.providers.values() if p.available]),
             "last_call": self.request_history[-1] if self.request_history else None
         }
