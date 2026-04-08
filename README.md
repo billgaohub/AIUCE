@@ -141,6 +141,18 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 - [贡献指南](CONTRIBUTING.md) - 如何参与贡献
 - [更新日志](CHANGELOG.md) - 版本历史
 
+## 🤝 社区项目
+
+AIUCE 架构思想已衍生出多个独立开源项目，欢迎使用与贡献：
+
+| 项目 | 描述 | 仓库 |
+|------|------|------|
+| **teonu-worldmodel** | 元认知调度引擎，三条系统法则 + 三层认知控制 | [GitHub](https://github.com/billgaohub/teonu-worldmodel) |
+| **agent-sovereignty-rules** | AI 决策权保护框架，五项核心原则 | [GitHub](https://github.com/billgaohub/agent-sovereignty-rules) |
+| **smart-file-router** | 智能文件分类引擎，关键词 + 语义匹配 | [GitHub](https://github.com/billgaohub/smart-file-router) |
+
+---
+
 ## 🤝 贡献
 
 我们欢迎所有形式的贡献！请查看 [CONTRIBUTING.md](CONTRIBUTING.md) 了解如何参与。
