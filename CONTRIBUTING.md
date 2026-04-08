@@ -1,145 +1,235 @@
-# Contributing to AIUCE
+# Contributing to AIUCE 🏯
 
 First off, thank you for considering contributing to AIUCE! It's people like you that make AIUCE such a great tool.
 
-## Code of Conduct
+---
 
-This project and everyone participating in it is governed by our commitment to respectful, constructive collaboration. By participating, you are expected to uphold this standard.
+## 📜 Code of Conduct
 
-## How Can I Contribute?
+This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to the project maintainers.
+
+---
+
+## 🤔 How Can I Contribute?
 
 ### Reporting Bugs
 
-Before creating bug reports, please check the existing issues to see if the problem has already been reported. When you are creating a bug report, please include as many details as possible:
+Before creating bug reports, please check the existing issues as you might find out that you don't need to create one. When you are creating a bug report, please include as many details as possible:
 
 - **Use a clear and descriptive title**
 - **Describe the exact steps to reproduce the problem**
 - **Provide specific examples to demonstrate the steps**
-- **Describe the behavior you observed and what behavior you expected**
-- **Include which layer(s) are involved** (L0-L10)
+- **Describe the behavior you observed and what you expected**
+- **Include screenshots or animated GIFs if helpful**
+- **Include your environment details** (OS, Python version, etc.)
 
 ### Suggesting Enhancements
 
-Enhancement suggestions are tracked as GitHub issues. When creating an enhancement suggestion, please include:
+Enhancement suggestions are tracked as GitHub issues. When creating an enhancement suggestion, include:
 
 - **Use a clear and descriptive title**
 - **Provide a step-by-step description of the suggested enhancement**
-- **Provide specific examples to demonstrate the enhancement**
+- **Provide specific examples to demonstrate the steps**
+- **Describe the current behavior and explain the desired behavior**
 - **Explain why this enhancement would be useful**
-- **Specify which layer would benefit from this enhancement**
 
 ### Pull Requests
 
-1. Fork the repository
-2. Create a new branch from `main` (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run the tests (`python -m pytest tests/`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+- Fill in the required template
+- Do not include issue numbers in the PR title
+- Include screenshots and animated GIFs in your pull request whenever possible
+- Follow the Python style guide (PEP 8)
+- Include tests for new functionality
+- Update documentation for changed functionality
+- End all files with a newline
 
-## Development Setup
+---
+
+## 🛠️ Development Process
+
+### Setting Up Your Development Environment
 
 ```bash
-# Clone your fork
-git clone https://github.com/your-username/AIUCE.git
-cd AIUCE
+# Fork and clone the repository
+git clone https://github.com/YOUR_USERNAME/aiuce.git
+cd aiuce
 
-# Create virtual environment
+# Create a virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
+# Install development dependencies
 pip install -r requirements.txt
-pip install -r requirements-dev.txt
+pip install -r requirements-dev.txt  # If exists
 
-# Run tests
+# Install pre-commit hooks
+pre-commit install
+
+# Run tests to verify setup
+pytest tests/
+```
+
+### Running Tests
+
+```bash
+# Run all tests
 pytest tests/
 
-# Start development server
-python api.py
+# Run with coverage
+pytest --cov=. tests/
+
+# Run specific test file
+pytest tests/test_l0_constitution.py
+
+# Run with verbose output
+pytest -v tests/
 ```
 
-## Layer Development Guide
+### Code Style
 
-### Adding a New Mind Model (L3)
+We follow PEP 8 style guidelines. Use these tools to ensure consistency:
 
-```python
-# In l3_reasoning.py
-class MyMindModel:
-    def analyze(self, input_data, context):
-        # Your analysis logic
-        return {"confidence": 0.8, "result": ...}
+```bash
+# Format code with Black
+black .
 
-# Register in ReasoningLayer
-reasoning.register_model("my_model", MyMindModel())
+# Sort imports with isort
+isort .
+
+# Check with flake8
+flake8 .
+
+# Type checking with mypy
+mypy aiuce/
 ```
 
-### Adding a New Data Source (L2)
+### Commit Messages
 
-```python
-# In l2_perception.py
-class MyDataSource:
-    def fetch(self):
-        # Your data fetching logic
-        return data
+Follow these guidelines for commit messages:
 
-perception.add_source("my_source", MyDataSource())
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
 ```
 
-### Adding a New Tool (L9)
+**Types**:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, etc.)
+- `refactor`: Code refactoring
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks
 
-```python
-# In l9_agent.py
-class MyTool:
-    def execute(self, params):
-        # Your execution logic
-        return result
+**Examples**:
+```
+feat(L0): add constitutional veto for high-risk operations
 
-agent.register_tool("my_tool", MyTool())
+Add L0 layer capability to veto any action that violates
+the constitution. This ensures AI stays under control.
+
+Closes #42
 ```
 
-## Style Guidelines
-
-### Python Code Style
-
-- Follow PEP 8
-- Use type hints where appropriate
-- Write docstrings for all public methods
-- Keep functions focused and small
-
-### Git Commit Messages
-
-- Use the present tense ("Add feature" not "Added feature")
-- Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
-- Limit the first line to 72 characters or less
-- Reference issues and pull requests liberally after the first line
-
-Example:
 ```
-Add constitutional check for data deletion
+fix(L5): correct timestamp format in decision log
 
-- Implement L0 veto for destructive operations
-- Add audit logging for all constitution checks
-- Update tests to cover new scenarios
+The decision log was using incorrect ISO format.
+Now uses proper ISO 8601 format with timezone.
 
-Fixes #123
+Fixes #87
 ```
 
-## Testing
+---
 
-- Write tests for new features
-- Ensure all tests pass before submitting PR
-- Aim for high test coverage
+## 🏗️ Architecture Guidelines
 
-## Documentation
+### Adding a New Layer
 
-- Update README.md if you change functionality
-- Update API documentation for API changes
-- Add docstrings to new functions and classes
+If you want to add or modify a layer, follow these steps:
 
-## Questions?
+1. **Read the Architecture Documentation** (docs/architecture.md)
+2. **Understand the Data Flow** (docs/architecture_diagrams.md)
+3. **Follow the Layer Template**:
+   ```python
+   # lX_layername.py
+   
+   class LXLayerName:
+       def __init__(self, config):
+           self.config = config
+       
+       def process(self, input_data):
+           """Process input according to layer responsibility."""
+           # Implementation
+           return output_data
+   ```
+4. **Write Tests** (tests/test_lX_layername.py)
+5. **Update Documentation**
 
-Feel free to open an issue with the `question` label or start a discussion.
+### Modifying Existing Layers
 
-Thank you for contributing! 🏯
+1. **Ensure backward compatibility** when possible
+2. **Add deprecation warnings** if breaking changes needed
+3. **Update all related tests**
+4. **Update documentation**
+
+---
+
+## 📚 Documentation Guidelines
+
+### What to Document
+
+- **API Reference**: All public functions and classes
+- **Architecture**: Design decisions and rationale
+- **Examples**: How to use the system
+- **Tutorials**: Step-by-step guides
+
+### Documentation Style
+
+- Use clear, concise language
+- Include code examples
+- Add diagrams where helpful
+- Keep it up-to-date with code changes
+
+---
+
+## 🔍 Review Process
+
+1. **Automated Checks**: CI runs tests, linting, and type checking
+2. **Code Review**: At least one maintainer reviews the PR
+3. **Discussion**: We discuss any questions or concerns
+4. **Approval**: Maintainer approves the PR
+5. **Merge**: PR is merged into main branch
+
+---
+
+## 🏆 Recognition
+
+Contributors are recognized in:
+
+- **README.md**: All contributors listed
+- **CHANGELOG.md**: Significant contributions mentioned
+- **GitHub Contributors**: Automatic recognition
+
+---
+
+## ❓ Questions?
+
+- **GitHub Discussions**: For general questions
+- **GitHub Issues**: For bug reports and feature requests
+- **Email**: For private inquiries (see profile)
+
+---
+
+## 📄 License
+
+By contributing, you agree that your contributions will be licensed under the MIT License.
+
+---
+
+Thank you for contributing to AIUCE! 🏯
+
+*Bringing Ancient Wisdom to Modern AI*

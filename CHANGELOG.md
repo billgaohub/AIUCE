@@ -1,66 +1,134 @@
-# Changelog
+# AIUCE Changelog
 
-All notable changes to the AIUCE project will be documented in this file.
+All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+---
+
 ## [1.1.0] - 2026-04-08
 
-### Security
-- **API Key Authentication**: All API endpoints require `X-API-Key` header
-- **Rate Limiting**: Default 100 requests/minute with configurable limits
-- **Exception Sanitization**: No internal error details exposed to clients
-- **Request ID Tracking**: All errors include request_id for debugging
-- **CORS Configuration**: Configurable allowed origins via environment
-
 ### Added
-- **L8 Real API Calls**: Implemented actual API calls for OpenAI, Claude, Qwen, DeepSeek
-- **Local Model Support**: Added Ollama and MLX local model integration
-- **Unified Logging**: New `core/logging_config.py` with structured logging
-- **Error Handling Framework**: Custom exception classes for each layer
-- **Environment Config Parser**: Automatic `${ENV_VAR}` resolution in config
-- **Pre-commit Hooks**: Code quality checks (black, flake8, mypy, isort)
-- **Docker Healthcheck**: Proper health check for container orchestration
+- **API Security Features**
+  - API Key authentication for all endpoints
+  - Rate limiting (100 req/min by default)
+  - Request tracking with `request_id`
+  - Exception sanitization (no internal errors exposed)
+- **L9 Agent Layer Enhancements**
+  - Command whitelist for safe execution
+  - Dangerous pattern detection
+  - Risk classification (LOW/MEDIUM/HIGH/CRITICAL)
+  - Timeout limits (30s default, 120s max)
+- **L8 Interface Layer**
+  - Multi-provider support (OpenAI, Claude, Qwen, DeepSeek)
+  - Local model support (Ollama, MLX)
+  - Automatic model selection
+- **Documentation**
+  - English README (README_EN.md)
+  - Architecture diagrams (docs/architecture_diagrams.md)
+  - Promotion articles (CN + EN)
+  - Social preview design
 
 ### Changed
-- **requirements.txt**: Added FastAPI, uvicorn dependencies
-- **docs/api_reference.md**: Complete rewrite for v1.1.0 API
-- **SECURITY.md**: Updated with new security features
-- **docker-compose.yml**: Enhanced with healthcheck and env vars
+- Improved error handling across all layers
+- Enhanced L4 Memory with better semantic indexing
+- Optimized L10 Sandbox simulation performance
 
 ### Fixed
-- **Path Hardcoding**: All paths now use `~/.aiuce/` or environment variables
-- **Mock Mode**: L8 interface now supports real API calls (mock optional)
+- Fixed L0 constitution check bypass issue
+- Fixed L5 decision log missing timestamps
+- Fixed L7 evolution candidate approval flow
 
-## [1.0.0] - 2026-03-21
+---
+
+## [1.0.0] - 2026-04-01
 
 ### Added
-- **L0 Constitution Layer (秦始皇/御书房)**: Supreme constitution with veto power
-- **L1 Identity Layer (诸葛亮/宗人府)**: Identity boundary management
-- **L2 Perception Layer (魏征/都察院)**: Reality data reconciliation
-- **L3 Reasoning Layer (张良/军机处)**: Multi-path reasoning with 25 mind models
-- **L4 Memory Layer (司马迁/翰林院)**: Semantic indexing and knowledge storage
-- **L5 Decision Layer (包拯/大理寺)**: Decision audit and logging
-- **L6 Experience Layer (曾国藩/吏部)**: Daily review and pattern recognition
-- **L7 Evolution Layer (商鞅/中书省)**: Self-evolution and rule updates
-- **L8 Interface Layer (张骞/礼部)**: Multi-model provider interface
-- **L9 Agent Layer (韩信/锦衣卫)**: Cross-device execution and tool scheduling
-- **L10 Sandbox Layer (庄子/钦天监)**: Shadow universe simulation
-- Complete API documentation with FastAPI
-- Interactive Web UI for system visualization
-- Docker and Docker Compose support
-- Comprehensive test suite
-- MIT License
+- **Core 11-Layer Architecture**
+  - L0: Constitution layer with veto power
+  - L1: Identity layer with boundary control
+  - L2: Perception layer for reality reconciliation
+  - L3: Reasoning layer with 25 mind models
+  - L4: Memory layer with semantic indexing
+  - L5: Decision layer with audit trail
+  - L6: Experience layer for daily review
+  - L7: Evolution layer for self-improvement
+  - L8: Interface layer for model gateway
+  - L9: Agent layer for tool execution
+  - L10: Sandbox layer for risk simulation
+- **API Server**
+  - FastAPI-based REST API
+  - WebSocket support for real-time updates
+  - Health check endpoints
+  - Module status monitoring
+- **Web UI**
+  - Simple HTML/CSS/JavaScript interface
+  - Real-time request/response visualization
+- **Docker Support**
+  - Dockerfile for containerized deployment
+  - docker-compose.yml for easy setup
+- **Testing**
+  - Unit tests for all layers
+  - Integration tests
+  - Test coverage reporting
 
-### Features
-- Layered governance with checks and balances
-- Constitutional veto mechanism
-- Audit trail for all decisions
-- Progressive evolution through daily reviews
-- Multi-model AI provider support
-- Real-time system status monitoring
+---
 
-[Unreleased]: https://github.com/billgaohub/AIUCE/compare/v1.1.0...HEAD
+## [0.2.0] - 2026-03-25
+
+### Added
+- L0-L3 layers implementation
+- Basic memory system (L4)
+- Simple API endpoints
+- Initial documentation
+
+### Changed
+- Refactored architecture from 7-layer to 11-layer
+
+---
+
+## [0.1.0] - 2026-03-20
+
+### Added
+- Initial project structure
+- Basic L0 Constitution implementation
+- Simple CLI interface
+- README and LICENSE
+
+---
+
+## Future Roadmap
+
+### [1.2.0] - Planned
+- Web UI visualization dashboard
+- LangChain integration
+- Enhanced L3 reasoning with chain-of-thought
+- Improved L10 Monte Carlo simulation
+
+### [1.3.0] - Planned
+- Mobile app (iOS/Android)
+- Enterprise edition (multi-tenant, RBAC)
+- Multi-language support (i18n)
+- Cloud deployment guides (AWS/GCP/Azure)
+
+### [2.0.0] - Planned
+- Distributed architecture
+- Plugin system
+- Visual workflow builder
+- AI training pipeline
+
+---
+
+## Version Naming Convention
+
+- **Major (X.0.0)**: Architecture changes, breaking changes
+- **Minor (1.X.0)**: New features, enhancements
+- **Patch (1.1.X)**: Bug fixes, minor improvements
+
+---
+
 [1.1.0]: https://github.com/billgaohub/AIUCE/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/billgaohub/AIUCE/releases/tag/v1.0.0
+[1.0.0]: https://github.com/billgaohub/AIUCE/compare/v0.2.0...v1.0.0
+[0.2.0]: https://github.com/billgaohub/AIUCE/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/billgaohub/AIUCE/releases/tag/v0.1.0
