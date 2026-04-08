@@ -50,9 +50,9 @@ class ExperienceLayer:
 
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
-        self.storage_path = self.config.get("storage_path",
-            "/Users/bill/Downloads/Qclaw_Dropzone/eleven_layer_ai/experience_store.json"
-        )
+        # 使用用户主目录下的 .aiuce 目录，避免硬编码路径
+        default_path = os.path.expanduser("~/.aiuce/experience_store.json")
+        self.storage_path = self.config.get("storage_path", default_path)
         
         self.reviews: List[ReviewRecord] = []
         self.patterns: Dict[str, SuccessPattern] = {}
@@ -113,6 +113,13 @@ class ExperienceLayer:
             self._extract_pattern(user_input, decision, model_response)
         
         print(f"  [L6 曾国藩] 📊 复盘记录: {review.id} [{review.outcome}]")
+        
+        # 返回复盘结果
+        return {
+            "review_id": review.id,
+            "outcome": review.outcome,
+            "timestamp": review.timestamp
+        }
 
     def _assess_outcome(self, result: Dict[str, Any]) -> str:
         """评估执行结果"""

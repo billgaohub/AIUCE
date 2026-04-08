@@ -55,9 +55,9 @@ class EvolutionLayer:
 
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
-        self.storage_path = self.config.get("storage_path",
-            "/Users/bill/Downloads/Qclaw_Dropzone/eleven_layer_ai/evolution_store.json"
-        )
+        # 使用用户主目录下的 .aiuce 目录，避免硬编码路径
+        default_path = os.path.expanduser("~/.aiuce/evolution_store.json")
+        self.storage_path = self.config.get("storage_path", default_path)
         
         # 演化规则库
         self.rules: Dict[str, EvolutionRule] = {}

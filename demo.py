@@ -7,9 +7,12 @@
 """
 
 import sys
-sys.path.insert(0, "/Users/bill/Downloads/Qclaw_Dropzone")
+import os
 
-from eleven_layer_ai import ElevenLayerSystem
+# 使用相对路径，避免硬编码
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from system import ElevenLayerSystem
 
 
 def print_header(title):
