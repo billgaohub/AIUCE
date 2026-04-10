@@ -13,6 +13,43 @@
 4. **可审计性**：所有决策都有日志记录
 5. **可演化性**：L7负责系统自我改进
 
+---
+
+## 开源组件集成
+
+AIUCE 的十一层架构与业界顶尖开源项目深度集成，确保系统的主权可控与长期演化能力。
+
+| 层级 | 集成组件 | 融合逻辑 |
+|------|----------|----------|
+| **L0 意志层** | Hermes Agent | 语义审计 + 合宪性检查 |
+| **L1 身份层** | OpenClaw + Hermes | 用户画像 + 人设边界 |
+| **L2 感知层** | UI-TARS + Memos | GUI 捕捉 + 碎片信息捕获 |
+| **L3 推理层** | Deer-flow + Skills | 任务拆解 + 模块化技能 |
+| **L4 记忆层** | Lossless-claw + Cognee | DAG 无损存储 + 知识图谱 |
+| **L5 决策层** | Event Log | 事件溯源 + 决策存证 |
+| **L6 经验层** | Hermes + OpenSpace | 闭环学习 + 经济评估 |
+| **L7 演化层** | OpenSpace + Hermes | AUTO-FIX + SOP 提取 |
+| **L8 接口层** | Pretext + AIUCE-Node | 前端排版 + 事件总线 |
+| **L9 代理层** | CLI-Anything + UI-TARS | API 化 + 键鼠操作 |
+| **L10 沙盒层** | Deer-flow Sandbox | 影子宇宙 + 蒙特卡洛模拟 |
+
+### 关键开源项目
+
+| 项目 | 用途 | GitHub |
+|------|------|--------|
+| **Deer-flow** | 任务规划引擎 | https://github.com/bytedance/deer-flow |
+| **Hermes** | 意图审计 + 闭环学习 | https://github.com/NousResearch/hermes-agent |
+| **UI-TARS** | GUI 自动化 | https://github.com/bytedance/UI-TARS |
+| **Lossless-claw** | 无损记忆存储 | https://github.com/Martian-Engineering/lossless-claw |
+| **Cognee** | 知识图谱引擎 | https://github.com/topoteretes/cognee |
+| **OpenSpace** | 演化引擎 | https://github.com/HKUDS/OpenSpace |
+| **CLI-Anything** | 命令行工具 API 化 | https://github.com/HKUDS/CLI-Anything |
+| **Pretext** | 前端排版引擎 | https://github.com/chenglou/pretext |
+| **Memos** | 碎片笔记 | https://github.com/usememos/memos |
+| **Skills** | 模块化技能 | https://github.com/slavingia/skills |
+
+---
+
 ## 层级详解
 
 ### L0 意志层 (秦始皇/御书房)

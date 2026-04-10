@@ -136,6 +136,7 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 
 - [快速开始](QUICKSTART.md) - 5分钟上手
 - [架构设计](docs/architecture.md) - 深入了解十一层架构
+- [开源集成指南](docs/integration.md) - 如何集成 Deer-flow、Hermes 等组件
 - [API 参考](docs/api_reference.md) - 完整的 API 文档
 - [设计哲学](docs/philosophy.md) - AIUCE 的设计思想
 - [贡献指南](CONTRIBUTING.md) - 如何参与贡献

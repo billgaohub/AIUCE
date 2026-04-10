@@ -4,8 +4,12 @@
 展示如何初始化和使用十一层架构系统。
 """
 
+import os
 import sys
-sys.path.insert(0, "/Users/bill/Downloads/Qclaw_Dropzone")
+
+# 添加项目根目录到 Python 路径
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
 
 from eleven_layer_ai import ElevenLayerSystem, create_system
 

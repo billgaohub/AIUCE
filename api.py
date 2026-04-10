@@ -97,7 +97,14 @@ def check_rate_limit(request: Request):
 app = FastAPI(
     title="AIUCE System API",
     description="AIUCE - AI Universe Constitution Evolution System API (Secured)",
-    version="1.1.0"
+    version="1.1.0",
+    openapi_tags=[
+        {"name": "System", "description": "System health and info endpoints"},
+        {"name": "Query", "description": "Query processing endpoints"},
+        {"name": "Layers", "description": "Individual layer access endpoints"},
+        {"name": "Memory", "description": "Memory and knowledge management"},
+        {"name": "Evolution", "description": "System evolution and self-improvement"},
+    ]
 )
 
 # CORS 配置

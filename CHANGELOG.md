@@ -100,6 +100,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Future Roadmap
 
+### [1.3.0] - Planned
+- Mobile app (iOS/Android)
+- Enterprise edition (multi-tenant, RBAC)
+- Multi-language support (i18n)
+- Cloud deployment guides (AWS/GCP/Azure)
+
+### [2.0.0] - Planned
+- Distributed architecture
+- Plugin system
+- Visual workflow builder
+- AI training pipeline
+
+---
+
+## [1.2.0] - 2026-04-10
+
+### Added
+- **`.env.example`**: 环境变量配置示例文件
+- **`docs/integration.md`**: 开源组件集成指南（Deer-flow、Hermes、UI-TARS 等）
+- **`core/types.py`**: 完整的类型注解定义
+  - LayerID, MessageType, DecisionStatus, RiskLevel 枚举
+  - Message, Event, LayerResult 数据类
+  - MemoryNode, MemoryQuery, MemorySearchResult 记忆系统类型
+  - Decision 决策记录类型
+  - Pydantic API 模型
+  - 泛型 Result 容器
+
+### Changed
+- **`examples/demo.py`**: 移除硬编码路径，使用相对路径
+- **`.github/workflows/ci.yml`**: 
+  - 新增 lint job（Black、Flake8、MyPy）
+  - 新增 build job
+  - 新增 Codecov 覆盖率上传
+- **`docs/architecture.md`**: 新增开源组件集成章节
+- **`api.py`**: 新增 OpenAPI Tags 定义
+- **`README.md`**: 新增集成指南链接
+
+### Fixed
+- 修复 demo.py 中的硬编码路径问题
+- 修复 CI 流程不完整问题
+- 修复 API 文档缺少标签分类问题
+
+### Security
+- 新增 `.env.example` 说明安全配置最佳实践
+
+---
+
+## Future Roadmap (Legacy)
+
 ### [1.2.0] - Planned
 - Web UI visualization dashboard
 - LangChain integration
