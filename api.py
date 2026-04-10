@@ -97,7 +97,7 @@ def check_rate_limit(request: Request):
 app = FastAPI(
     title="AIUCE System API",
     description="AIUCE - AI Universe Constitution Evolution System API (Secured)",
-    version="1.1.0",
+    version="1.4.0",
     openapi_tags=[
         {"name": "System", "description": "System health and info endpoints"},
         {"name": "Query", "description": "Query processing endpoints"},
@@ -212,7 +212,7 @@ async def root():
         return RedirectResponse(url="/static/index.html")
     return {
         "name": "十一层架构 AI 系统 API",
-        "version": "1.1.0",
+        "version": "1.4.0",
         "layers": ["L0-L10"],
         "docs": "/docs",
         "auth_enabled": AUTH_ENABLED
@@ -225,7 +225,7 @@ async def health_check():
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
-        "version": "1.1.0"
+        "version": "1.4.0"
     }
 
 
@@ -439,7 +439,7 @@ async def broadcast_message(
 
 if __name__ == "__main__":
     print(f"\n{'━' * 60}")
-    print(f"  🏯 AIUCE API Server v1.3.0")
+    print(f"  🏯 AIUCE API Server v1.4.0")
     print(f"  Auth: {'Enabled' if AUTH_ENABLED else 'Disabled'}")
     print(f"  Rate Limit: {RATE_LIMIT_REQUESTS} req/{RATE_LIMIT_WINDOW}s")
     print(f"  Channels: 飞书/Telegram/Webhook")

@@ -568,3 +568,89 @@ with Timer("operation_name") as timer:
     pass
 print(f"耗时: {timer.elapsed_ms()}ms")
 ```
+
+---
+
+## 多入口通道 API
+
+### GET /channels
+
+列出所有已注册的 IM 通道状态。
+
+**响应示例**：
+```json
+{
+  "channels": [
+    { "type": "feishu", "enabled": true, "healthy": true },
+    { "type": "telegram", "enabled": false, "healthy": false }
+  ]
+}
+```
+
+### POST /channels/broadcast
+
+广播消息到所有已启用的通道。
+
+**请求参数**：
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| message | string | 广播内容 |
+
+**响应示例**：
+```json
+{
+  "results": {
+    "feishu": true,
+    "telegram": false
+  }
+}
+```
+
+### POST /webhook/feishu
+
+飞书事件 Webhook 接收端点。由飞书开放平台推送事件。
+
+**飞书事件格式**：
+```json
+{
+  "schema": "2.0",
+  "header": {
+    "event_type": "im.message.receive_v1",
+    "token": "xxx"
+  },
+  "event": {
+    "sender": { "sender_id": { "open_id": "ou_xxx" } },
+    "chat_id": "oc_xxx",
+    "message_id": "om_xxx",
+    "text": { "content": "用户输入内容" }
+  }
+}
+```
+
+### POST /webhook/telegram
+
+Telegram Bot Webhook 接收端点。
+
+**Telegram Update 格式**：
+```json
+{
+  "update_id": 123456789,
+  "message": {
+    "chat": { "id": 123456789, "type": "private" },
+    "from": { "id": 123456789, "is_bot": false },
+    "message_id": 1,
+    "text": "用户输入"
+  }
+}
+```
+
+## 通道配置
+
+通过环境变量配置各通道：
+
+| 环境变量 | 说明 | 必需 |
+|----------|------|------|
+| `FEISHU_APP_ID` | 飞书应用 ID | 飞书启用时 |
+| `FEISHU_APP_SECRET` | 飞书应用密钥 | 飞书启用时 |
+| `FEISHU_VERIFICATION_TOKEN` | 飞书验证 Token | 飞书启用时 |
+| `TELEGRAM_BOT_TOKEN` | Telegram Bot Token | Telegram 启用时 |

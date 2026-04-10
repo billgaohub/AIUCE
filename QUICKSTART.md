@@ -3,12 +3,12 @@
 ## 一键启动
 
 ```bash
-cd /Users/bill/Downloads/Qclaw_Dropzone/eleven_layer_ai
+cd /Users/bill/SONUV/BILL_WORKSPACE/05_PROJECTS/AIUCE/repo
 
-# 方式1: 使用启动脚本（推荐）
-./run.sh
+# 方式1: 虚拟环境启动（推荐）
+source .venv/bin/activate && python3 api.py
 
-# 方式2: 手动启动
+# 方式2: 直接启动
 python3 api.py
 ```
 
@@ -68,29 +68,48 @@ response = system.chat("你好")
 print(response)
 ```
 
+### 📡 多入口通道
+
+配置环境变量后，API 自动支持飞书/Telegram：
+
+```bash
+# 飞书
+export FEISHU_APP_ID=cli_xxx
+export FEISHU_APP_SECRET=xxx
+
+# Telegram
+export TELEGRAM_BOT_TOKEN=xxx:xxx
+```
+
+配置后自动启用，详见 [docs/channels.md](docs/channels.md)。
+
 ## 项目结构
 
 ```
-eleven_layer_ai/
-├── run.sh              # 一键启动脚本 ⭐
-├── api.py              # API 服务
-├── static/
-│   └── index.html      # Web 界面
-├── system.py           # 主系统
-├── l1_identity.py      # L1 身份层
-├── l2_perception.py    # L2 感知层
-├── l3_reasoning.py     # L3 推理层
-├── l4_memory.py        # L4 记忆层
-├── l5_decision.py      # L5 决策层
-├── l6_experience.py    # L6 经验层
-├── l7_evolution.py     # L7 演化层
-├── l8_interface.py     # L8 接口层
-├── l9_agent.py         # L9 代理层
-├── l10_sandbox.py      # L10 沙盒层
+aiuce/
+├── api.py              # FastAPI 服务 (v1.4.0) ⭐
+├── system.py           # 十一层系统主入口
 ├── core/               # 核心模块
-├── examples/           # 示例代码
+│   ├── constitution.py  # L0 合宪性网关（秦始皇）
+│   ├── identity.py      # L1 身份边界
+│   ├── l2_reality_sensor.py # L2 感知层（魏征）
+│   ├── l3_reasoning.py   # L3 推理引擎（张良）
+│   ├── l4_memory.py     # L4 记忆存储（司马迁）
+│   ├── l5_decision.py   # L5 决策审计（包拯）
+│   ├── memory_sal.py    # L4 分级存储抽象层
+│   ├── neural_bus.py    # 神经总线事件溯源
+│   ├── evolution.py    # L6/L7 双核演化（曾国藩/商鞅）
+│   ├── l9_agent.py      # L9 代理执行（韩信）
+│   ├── message.py       # 消息总线
+│   ├── constants.py     # 系统常量
+│   └── channels/        # 多入口通道 ⭐
+│       ├── base.py      # 统一适配器接口
+│       ├── feishu.py    # 飞书适配器
+│       ├── telegram.py   # Telegram 适配器
+│       └── manager.py   # 通道管理器
+├── docs/               # 文档
 ├── tests/              # 测试文件
-└── docs/               # 文档
+└── examples/           # 示例代码
 ```
 
 ## 常用命令
