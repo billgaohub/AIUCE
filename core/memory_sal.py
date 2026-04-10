@@ -347,12 +347,13 @@ class WorkingMemory:
             print(f"  [L4 L1工作记忆] 持久化失败: {e}")
     
     def retrieve(self, query: str, top_k: int = 5) -> List[Tuple[MemoryEntry, float]]:
-        """FTS5 检索"""
+        """FTS5 + LIKE 双轨检索（兼容中文）"""
         with self._lock:
             results: List[Tuple[MemoryEntry, float]] = []
             query_lower = query.lower()
+            seen_ids = set()
             
-            # FTS5 全文检索
+            # 1. FTS5 全文检索（英文/数字优先）
             try:
                 with sqlite3.connect(self.storage_path) as conn:
                     cursor = conn.execute(
@@ -376,16 +377,56 @@ class WorkingMemory:
                             parent_id=row[6]
                         )
                         
-                        # 计算分数
                         score = 0.5
                         if query_lower in entry.content.lower():
                             score += 0.3
                         score *= (0.5 + 0.5 * entry.importance)
                         
+                        seen_ids.add(entry.id)
                         results.append((entry, score))
             except Exception:
-                # 回退到内存检索
+                pass  # FTS5 可能不支持中文分词，走 LIKE fallback
+            
+            # 2. LIKE fallback（中文支持）
+            if len(results) < top_k:
+                try:
+                    with sqlite3.connect(self.storage_path) as conn:
+                        cursor = conn.execute(
+                            """SELECT id, content, timestamp, category, importance, tags, parent_id
+                               FROM memories
+                               WHERE content LIKE ?
+                               LIMIT ?""",
+                            (f"%{query}%", top_k * 2)
+                        )
+                        
+                        for row in cursor.fetchall():
+                            if row[0] in seen_ids:
+                                continue
+                            entry = MemoryEntry(
+                                id=row[0],
+                                content=row[1],
+                                timestamp=row[2],
+                                category=row[3],
+                                importance=row[4],
+                                tags=json.loads(row[5]) if row[5] else [],
+                                parent_id=row[6]
+                            )
+                            
+                            score = 0.4
+                            if query_lower in entry.content.lower():
+                                score += 0.3
+                            score *= (0.5 + 0.5 * entry.importance)
+                            
+                            seen_ids.add(entry.id)
+                            results.append((entry, score))
+                except Exception:
+                    pass
+            
+            # 3. 内存检索兜底
+            if len(results) < top_k:
                 for entry in self.entries.values():
+                    if entry.id in seen_ids:
+                        continue
                     score = 0.0
                     if query_lower in entry.content.lower():
                         score += 0.5
@@ -394,6 +435,7 @@ class WorkingMemory:
                             score += 0.3
                     if score > 0:
                         score *= (0.5 + 0.5 * entry.importance)
+                        seen_ids.add(entry.id)
                         results.append((entry, score))
             
             results.sort(key=lambda x: x[1], reverse=True)
