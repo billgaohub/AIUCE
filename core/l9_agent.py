@@ -702,8 +702,8 @@ class AgentLayer:
         self.config = config or {}
         
         # 组件
-        self.registry = ToolRegistry(config.get("registry", {}))
-        self.engine = ExecutionEngine(config.get("engine", {}))
+        self.registry = ToolRegistry(self.config.get("registry", {}))
+        self.engine = ExecutionEngine(self.config.get("engine", {}))
         
         # 执行回调
         self._pre_execute_callbacks: List[Callable] = []
