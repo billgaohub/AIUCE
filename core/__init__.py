@@ -25,6 +25,7 @@ from .types import (
 )
 
 from .message import Message, MessageBus, LayerLevel as MsgLayerLevel
+from .async_message import AsyncMessageBus, AsyncCallback, SyncCallback, AnyCallback
 from .constitution import Constitution
 from .audit import AuditLog
 
@@ -46,5 +47,7 @@ __all__ = [
     "ConstitutionClause", "AuditEntry", "SystemConfig",
     "LayerResult", "SystemRunResult",
     # core components
-    "Message", "MessageBus", "Constitution", "AuditLog",
+    "Message", "MessageBus", "AsyncMessageBus", 
+    "AsyncCallback", "SyncCallback", "AnyCallback",
+    "Constitution", "AuditLog",
 ]

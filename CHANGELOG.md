@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.1] - 2026-04-10
+
+### Added
+- **`core/async_message.py`**: 异步消息总线实现
+  - 支持同步和异步订阅者混合
+  - 并发投递消息到多个层级
+  - 异步钩子机制
+  - 线程池执行同步回调
+- **`benchmarks/performance.py`**: 性能基准测试套件
+  - 消息总线吞吐量测试
+  - 异步消息总线测试
+  - 消息创建性能测试
+  - 层级枚举性能测试
+  - 端到端延迟测试
+- **`QUICKSTART_EN.md`**: 英文快速开始指南
+- **`l4_memory.py`**: 完善类型注解
+  - MemoryCategory, MemoryPriority 枚举
+  - EmbeddingProvider 协议
+  - MemoryQuery, MemorySearchResult, MemoryStats 数据类
+
+### Changed
+- **`requirements.txt`**: 新增 pytest-asyncio, pytest-cov
+- **`core/__init__.py`**: 导出 AsyncMessageBus 相关类型
+
+### Improved
+- 文档国际化质量提升
+- L4 记忆层类型注解完善
+
+---
+
+## [1.2.0] - 2026-04-10
+
+### Added
+- **`.env.example`**: 环境变量配置示例文件
+- **`docs/integration.md`**: 开源组件集成指南（Deer-flow、Hermes、UI-TARS 等）
+- **`core/types.py`**: 完整的类型注解定义
+
+### Changed
+- **`examples/demo.py`**: 移除硬编码路径
+- **`.github/workflows/ci.yml`**: 新增 lint/build job, Codecov 支持
+- **`docs/architecture.md`**: 新增开源组件集成章节
+
+---
+
 ## [1.1.0] - 2026-04-08
 
 ### Added
