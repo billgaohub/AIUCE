@@ -147,9 +147,9 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 | 项目 | 状态 | 说明 |
 |------|------|------|
 | [IPIPQ](https://github.com/billgaohub/ipipq) | ✅ Active | AI 文件自动整理工具（主变现产品） |
-| [teonu-worldmodel](https://github.com/billgaohub/teonu-worldmodel) | 📦 Archived | 元认知调度引擎（已合并至 AGF） |
-| [agent-sovereignty-rules](https://github.com/billgaohub/agent-sovereignty-rules) | 📦 Archived | 决策权保护框架（已合并至 AGF） |
-| [smart-file-router](https://github.com/billgaohub/smart-file-router) | 📦 Archived | 智能文件分类引擎（已演进为 IPIPQ） |
+| [teonu-worldmodel](https://github.com/billgaohub/teonu-worldmodel) | ✅ Active | 元认知调度引擎（已合并至 AGF） |
+| [agent-sovereignty-rules](https://github.com/billgaohub/agent-sovereignty-rules) | ✅ Active | 决策权保护框架（已合并至 AGF） |
+| [smart-file-router](https://github.com/billgaohub/smart-file-router) | ✅ Active | 智能文件分类引擎（已演进为 IPIPQ） |
 
 ## 🤝 贡献
 
