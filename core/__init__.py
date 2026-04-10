@@ -26,7 +26,39 @@ from .types import (
 
 from .message import Message, MessageBus, LayerLevel as MsgLayerLevel
 from .async_message import AsyncMessageBus, AsyncCallback, SyncCallback, AnyCallback
-from .constitution import Constitution
+
+# 双重网关宪法
+from .constitution import (
+    GateType, VetoLevel,
+    ConstitutionClause as DualClause,
+    VetoResult, HardGateway, SoftGateway,
+    Constitution as DualConstitution,
+)
+
+# 分级存储抽象层
+from .memory_sal import (
+    MemoryTier, ArchiveStatus,
+    MemoryCategory as MemoryCategoryEnum,
+    EmbeddingProvider, MemoryEntry as MemoryEntrySAL,
+    KnowledgeNode, MemoryQuery, MemorySearchResult,
+    WorkingMemory, SemanticDisk, MemoryLayer as MemoryLayerSAL,
+)
+
+# 神经总线
+from .neural_bus import (
+    EventType, Event, EventSubscription,
+    EventStore, EventQueue, NeuralBus,
+)
+
+# 双核演化引擎
+from .evolution import (
+    EvolutionMode, EvolutionStatus, EvolutionTrigger,
+    SuccessPattern as EvolutionPattern,
+    EvolutionRule as EvolutionRuleType,
+    MutationRecord as MutationRecordType,
+    InnerEvolution, OuterEvolution, DualCoreEvolution,
+)
+
 from .audit import AuditLog
 
 __all__ = [
@@ -49,5 +81,21 @@ __all__ = [
     # core components
     "Message", "MessageBus", "AsyncMessageBus", 
     "AsyncCallback", "SyncCallback", "AnyCallback",
-    "Constitution", "AuditLog",
+    # 双重网关
+    "GateType", "VetoLevel", "DualClause", "VetoResult",
+    "HardGateway", "SoftGateway", "DualConstitution",
+    # 分级存储
+    "MemoryTier", "ArchiveStatus", "MemoryCategoryEnum",
+    "EmbeddingProvider", "MemoryEntrySAL", "KnowledgeNode",
+    "MemoryQuery", "MemorySearchResult",
+    "WorkingMemory", "SemanticDisk", "MemoryLayerSAL",
+    # 神经总线
+    "EventType", "Event", "EventSubscription",
+    "EventStore", "EventQueue", "NeuralBus",
+    # 双核演化
+    "EvolutionMode", "EvolutionStatus", "EvolutionTrigger",
+    "EvolutionPattern", "EvolutionRuleType", "MutationRecordType",
+    "InnerEvolution", "OuterEvolution", "DualCoreEvolution",
+    # 审计
+    "AuditLog",
 ]

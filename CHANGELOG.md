@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2026-04-10
+
+### Added - 核心架构升级（开源技术深度融合）
+
+**L0 意志层 - 双重合宪性网关**
+- `core/constitution.py`: 重构为双重网关架构
+  - 硬网关 (HardGateway): 确定性规则引擎，< 1ms 延迟
+  - 软网关 (SoftGateway): 语义审查引擎，预留 Hermes 集成接口
+  - 预编译正则匹配，支持资金/系统目录/权限/隐私/有害内容拦截
+
+**L4 记忆层 - 分级存储抽象层 (SAL)**
+- `core/memory_sal.py`: 全新分级存储架构
+  - L1 工作记忆: Lossless-claw DAG 结构 + FTS5 全文检索
+  - L2 长期语义盘: Cognee 知识图谱微服务
+  - 异步归档队列 + 实体提取 + 关系构建
+  - SQLite 持久化 (~/.aiuce/lcm.db, ~/.aiuce/knowledge_graph/)
+
+**神经总线 - 事件溯源引擎**
+- `core/neural_bus.py`: AIUCE-Node 神经总线
+  - 事件队列 (EventQueue): 内存/Redis Stream 可选
+  - 事件存储 (EventStore): SQLite Append-only + 索引
+  - 20+ 事件类型覆盖全部 11 层
+  - correlation_id/causation_id 事件链追踪
+  - 事件回放 (Replay) 支持审计
+
+**L6/L7 演化层 - 双核变法引擎**
+- `core/evolution.py`: 内圣外王双核架构
+  - 内环 (InnerEvolution): Hermes 风格，成功模式提取 + 技能标准化
+  - 外环 (OuterEvolution): OpenSpace 风格，FIX/DERIVED/CAPTURED 三模式
+  - 最大重构尝试次数限制 + Fallback to Human 机制
+  - 变异记录 + 回滚支持
+
+### Architecture
+
+```
+用户输入
+    ↓
+[L0 双重网关] → 硬网关 (<1ms) → 软网关 (语义)
+    ↓
+[L4 分级存储] → L1 DAG 工作记忆 → L2 知识图谱
+    ↓
+[神经总线] → 事件溯源 → 审计日志
+    ↓
+[L6/L7 双核演化] → 内环(Hermes) + 外环(OpenSpace)
+```
+
+### Integrations Ready
+- Hermes-agent: L0 软网关语义审查 + L6 内环学习
+- Lossless-claw: L4 L1 DAG 存储
+- Cognee: L4 L2 知识图谱
+- OpenSpace: L7 外环演化引擎
+- Deer-flow: L3 推理层任务规划 (预留接口)
+- UI-TARS: L2/L9 感知与执行 (预留接口)
+
+---
+
 ## [1.2.1] - 2026-04-10
 
 ### Added
