@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+
+## [1.4.0] - 2026-04-10
+
+### Added - 多入口通道支持
+
+**飞书/Telegram 适配器**
+- `core/channels/`: 新增多入口通道模块
+  - `base.py`: 统一 ChannelMessage 格式
+  - `feishu.py`: 飞书机器人适配器
+  - `telegram.py`: Telegram Bot 适配器
+  - `manager.py`: 统一通道管理器
+- API 新增端点: /webhook/feishu, /webhook/telegram, /channels, /channels/broadcast
+
+### Changed - 架构现代化
+
+**移除古代人物命名**
+- 所有古代人物改为现代模块名
+- `core/constants.py`, `core/message.py` 等文件
+
+### Fixed - 配置初始化
+
+- L9 AgentLayer config=None 修复
+- 所有模块默认 config={} 确保安全初始化
+
+---
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 

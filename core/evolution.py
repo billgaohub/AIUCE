@@ -600,7 +600,7 @@ class DualCoreEvolution:
         # 外环演化
         self.outer = OuterEvolution(config.get("outer", {}))
         
-        print(f"  [L6/L7 演化层] 商鞅/曾国藩 - 双核变法引擎就位")
+        print(f"  [L6/L7 演化层] 演化引擎/变法中心 - 双核变法引擎就位")
     
     # ── 成功记录 ───────────────────────────────────────────────
     

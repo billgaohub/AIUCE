@@ -354,14 +354,95 @@ async def evolve(
 
 
 # ═══════════════════════════════════════════════════════════════
+# 通道管理 API（飞书、Telegram 等）
+# ═══════════════════════════════════════════════════════════════
+
+channel_manager: Optional[Any] = None
+
+def get_channel_manager():
+    """获取通道管理器（延迟初始化）"""
+    global channel_manager
+    if channel_manager is None:
+        from core.channels import ChannelManager
+        channel_config = {
+            "feishu": {
+                "enabled": bool(os.environ.get("FEISHU_APP_ID")),
+                "app_id": os.environ.get("FEISHU_APP_ID", ""),
+                "app_secret": os.environ.get("FEISHU_APP_SECRET", ""),
+                "verification_token": os.environ.get("FEISHU_VERIFICATION_TOKEN", ""),
+            },
+            "telegram": {
+                "enabled": bool(os.environ.get("TELEGRAM_BOT_TOKEN")),
+                "bot_token": os.environ.get("TELEGRAM_BOT_TOKEN", ""),
+            },
+        }
+        channel_manager = ChannelManager(channel_config)
+    return channel_manager
+
+
+@app.post("/webhook/feishu")
+async def feishu_webhook(request: Request):
+    """飞书 Webhook 接收"""
+    body = await request.json()
+    from core.channels import ChannelType
+    manager = get_channel_manager()
+    
+    results = await manager.handle_message(ChannelType.FEISHU, body)
+    
+    # 如果有处理结果，通过飞书发送响应
+    if results:
+        chat_id = body.get("event", {}).get("chat_id", "")
+        if chat_id:
+            from core.channels.base import ChannelType
+            await manager.send(ChannelType.FEISHU, str(results[0]), chat_id)
+    
+    return {"code": 0}
+
+
+@app.post("/webhook/telegram")
+async def telegram_webhook(request: Request):
+    """Telegram Webhook 接收"""
+    body = await request.json()
+    from core.channels.base import ChannelType
+    manager = get_channel_manager()
+    
+    results = await manager.handle_message(ChannelType.TELEGRAM, body)
+    
+    return {"ok": True}
+
+
+@app.get("/channels")
+async def list_channels(
+    _: str = Depends(check_rate_limit),
+    api_key: str = Depends(check_api_key)
+):
+    """列出所有已注册的通道"""
+    manager = get_channel_manager()
+    return {"channels": manager.list_channels()}
+
+
+@app.post("/channels/broadcast")
+async def broadcast_message(
+    message: str,
+    _: str = Depends(check_rate_limit),
+    api_key: str = Depends(check_api_key)
+):
+    """广播消息到所有通道"""
+    manager = get_channel_manager()
+    results = await manager.broadcast(message)
+    return {"results": {k.value: v for k, v in results.items()}}
+
+
+# ═══════════════════════════════════════════════════════════════
 # 启动
 # ═══════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     print(f"\n{'━' * 60}")
-    print(f"  🏯 AIUCE API Server v1.1.0 (Secured)")
+    print(f"  🏯 AIUCE API Server v1.3.0")
     print(f"  Auth: {'Enabled' if AUTH_ENABLED else 'Disabled'}")
     print(f"  Rate Limit: {RATE_LIMIT_REQUESTS} req/{RATE_LIMIT_WINDOW}s")
+    print(f"  Channels: 飞书/Telegram/Webhook")
     print(f"{'━' * 60}\n")
     
     uvicorn.run(

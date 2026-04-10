@@ -647,7 +647,7 @@ class ReasoningEngine:
         self.planner = TaskPlanner(self.config.get("planner", {}))
         self.reasoner = MultiPathReasoning(self.config.get("reasoner", {}))
         
-        print("  [L3 推理层] 房玄龄/军师 - 多路径推演引擎就位")
+        print("  [L3 推理层] 推理引擎/规划器 - 多路径推演引擎就位")
     
     # ── LLM 集成 ───────────────────────────────────────────────
     
