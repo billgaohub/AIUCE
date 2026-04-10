@@ -709,7 +709,7 @@ class AgentLayer:
         self._pre_execute_callbacks: List[Callable] = []
         self._post_execute_callbacks: List[Callable] = []
         
-        print("  [L9 代理层] 代理执行/工具调度 - 跨设备执行引擎就位")
+        print("  [L9 代理层] 韩信/锦衣卫 - 跨设备执行引擎就位")
     
     # ── UI-TARS 集成 ───────────────────────────────────────────
     

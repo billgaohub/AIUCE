@@ -1,6 +1,6 @@
 """
 L4 记忆层：分级存储抽象层 (Storage Abstraction Layer - SAL)
-记忆存储/索引中心
+司马迁/翰林院
 
 架构：
 ┌─────────────────────────────────────────────────────────┐
@@ -661,7 +661,7 @@ class MemoryLayer:
     """
     L4 记忆层 - 分级存储抽象层 (SAL)
     
-    记忆存储/索引中心
+    司马迁/翰林院
     
     "全域事实的语义索引，让过往一切碎片皆成史料"
     
@@ -686,7 +686,7 @@ class MemoryLayer:
         # 向量嵌入提供者
         self._embedding_provider = embedding_provider
         
-        print(f"  [L4 记忆层] 记忆存储/索引中心 - 分级存储抽象层就位")
+        print(f"  [L4 记忆层] 司马迁/翰林院 - 分级存储抽象层就位")
         print(f"    L1 工作记忆: {self.working_memory.stats()['total_entries']} 条")
         print(f"    L2 语义盘: {self.semantic_disk.stats()['total_nodes']} 个节点")
     

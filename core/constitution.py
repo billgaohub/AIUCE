@@ -1,5 +1,5 @@
 """
-L0 意志层：最高意志/否决权
+L0 意志层：秦始皇/御书房
 双重合宪性网关 (Dual-Gateway Constitution)
 
 架构：
@@ -371,7 +371,7 @@ class SoftGateway:
 
 class Constitution:
     """
-    双重合宪性网关 - 最高意志/否决权
+    双重合宪性网关 - 秦始皇/御书房
     
     架构：
     ┌─────────────────────────────────────────────────────────┐
@@ -412,7 +412,7 @@ class Constitution:
         self._last_veto: Optional[VetoResult] = None
         self._last_warning: List[VetoResult] = []
         
-        print(f"  [L0 意志层] 最高意志/否决权 - 双重网关启动")
+        print(f"  [L0 意志层] 秦始皇/御书房 - 双重网关启动")
         print(f"    硬网关: {len(self.hard_gateway.clauses)} 条规则")
         print(f"    软网关: {len(self.soft_gateway.clauses)} 条规则")
     

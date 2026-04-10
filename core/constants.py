@@ -17,19 +17,19 @@ class Layer:
     L9_AGENT      = "L9"   # 代理层 - 代理执行
     L10_SANDBOX   = "L10"  # 沙盒层 - 沙盒环境
 
-# ─── Layer Officials (现代职能) ────────────────────────────────
+# ─── Layer Officials (历史人物) ─────────────────────────────────
 LAYER_OFFICIALS = {
-    Layer.L0_WILL:       ("最高意志",    "否决权",     "一票否决权，最高意志"),
-    Layer.L1_IDENTITY:   ("身份验证",    "授权中心",   "身份边界，人设锁定"),
-    Layer.L2_PERCEPTION: ("感知器",      "传感器",     "现实对账，只说真话"),
-    Layer.L3_REASONING:  ("推理引擎",    "规划器",     "多路径推演，最优决策"),
-    Layer.L4_MEMORY:     ("记忆存储",    "索引中心",   "全域索引，史料编纂"),
-    Layer.L5_DECISION:   ("决策引擎",    "仲裁庭",     "审计存证，仲裁落槌"),
-    Layer.L6_EXPERIENCE: ("经验模块",    "复盘引擎",   "复盘扫描，偏离预警"),
-    Layer.L7_EVOLUTION:  ("演化引擎",    "变法中心",   "内核重构，物理变法"),
-    Layer.L8_INTERFACE:  ("接口适配",    "模型网关",   "算力外交，模型调度"),
-    Layer.L9_AGENT:      ("代理执行",    "工具调度",   "跨设备执行，工具调度"),
-    Layer.L10_SANDBOX:   ("沙盒环境",    "模拟器",     "观星模拟，影子宇宙"),
+    Layer.L0_WILL:       ("秦始皇", "御书房",  "一票否决权，最高意志"),
+    Layer.L1_IDENTITY:   ("诸葛亮", "宗人府",  "鞠躬尽瘁，死守人设"),
+    Layer.L2_PERCEPTION: ("魏征",   "都察院",  "犯颜直谏，只说真话"),
+    Layer.L3_REASONING:  ("张良",   "军机处",  "运筹帷幄，多路径坍缩"),
+    Layer.L4_MEMORY:     ("司马迁", "翰林院",  "全域索引，史料编纂"),
+    Layer.L5_DECISION:   ("包拯",   "大理寺",  "决策存证，审计落槌"),
+    Layer.L6_EXPERIENCE: ("曾国藩", "吏部",    "结硬寨，固化成功"),
+    Layer.L7_EVOLUTION:  ("商鞅",   "中书省",  "内核重构，物理变法"),
+    Layer.L8_INTERFACE:  ("张骞",   "礼部",    "算力外交，丝绸之路"),
+    Layer.L9_AGENT:      ("韩信",   "锦衣卫",  "多多益善，多体协同"),
+    Layer.L10_SANDBOX:   ("庄子",   "钦天监",  "观星模拟，影子宇宙"),
 }
 
 # ─── Message Types ──────────────────────────────────────────────
