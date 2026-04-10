@@ -406,7 +406,7 @@ class Constitution:
         
         # 双重网关
         self.hard_gateway = HardGateway()
-        self.soft_gateway = SoftGateway(config.get("soft_gateway", {}))
+        self.soft_gateway = SoftGateway(self.config.get("soft_gateway", {}))
         
         # 审计记录
         self._last_veto: Optional[VetoResult] = None

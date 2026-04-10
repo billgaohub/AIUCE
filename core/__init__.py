@@ -11,17 +11,10 @@ from .constants import (
     MAX_MIND_MODELS, DEFAULT_CONTEXT_LIMIT,
 )
 
+# 类型定义（简化导入，避免循环依赖）
 from .types import (
-    LayerLevel, RiskLevel as RiskLevelEnum, MemoryCategory as MemCatEnum,
-    DecisionStatus as DecisionStatusEnum, OutcomeType,
-    RealityMetric, ReasoningPath, MindModel,
-    MemoryEntry, DecisionRecord, ReviewRecord, SuccessPattern,
-    EvolutionRule, MutationRecord,
-    ModelProvider, ModelResponse,
-    Tool, ExecutionResult,
-    SimulationScenario, SimulationResult,
-    ConstitutionClause, AuditEntry, SystemConfig,
-    LayerResult, SystemRunResult,
+    LayerID, MessageType, DecisionStatus as DecisionStatusType,
+    RiskLevel as RiskLevelType,
 )
 
 from .message import Message, MessageBus, LayerLevel as MsgLayerLevel
@@ -59,6 +52,29 @@ from .evolution import (
     InnerEvolution, OuterEvolution, DualCoreEvolution,
 )
 
+# L2 感知层
+from .l2_reality_sensor import (
+    PerceptionType, DataQuality, DriftLevel,
+    PerceptionEvent, RealitySnapshot, TruthClaim, DriftReport,
+    MultimodalPerception, RealityDataPipeline, TruthReconciliation,
+    RealitySensor,
+)
+
+# L3 推理层
+from .l3_reasoning import (
+    ReasoningStrategy, TaskStatus, PathScore,
+    ReasoningTask, ReasoningPath, TaskDAG, ReasoningResult,
+    TaskPlanner, MultiPathReasoning, ReasoningEngine,
+)
+
+# L9 代理层
+from .l9_agent import (
+    ToolCategory as AgentToolCategory,
+    ExecutionStatus, RiskLevel as AgentRiskLevel,
+    Tool, ExecutionRequest, ExecutionResult, UIAction,
+    ToolRegistry, ExecutionEngine, AgentLayer,
+)
+
 from .audit import AuditLog
 
 __all__ = [
@@ -69,15 +85,7 @@ __all__ = [
     "MAX_MEMORY_ENTRIES", "MAX_HISTORY_MESSAGES", "MAX_SANDBOX_ITERATIONS",
     "MAX_MIND_MODELS", "DEFAULT_CONTEXT_LIMIT",
     # types
-    "LayerLevel", "RiskLevelEnum", "MemCatEnum", "DecisionStatusEnum", "OutcomeType",
-    "RealityMetric", "ReasoningPath", "MindModel",
-    "MemoryEntry", "DecisionRecord", "ReviewRecord", "SuccessPattern",
-    "EvolutionRule", "MutationRecord",
-    "ModelProvider", "ModelResponse",
-    "Tool", "ExecutionResult",
-    "SimulationScenario", "SimulationResult",
-    "ConstitutionClause", "AuditEntry", "SystemConfig",
-    "LayerResult", "SystemRunResult",
+    "LayerID", "MessageType", "DecisionStatusType", "RiskLevelType",
     # core components
     "Message", "MessageBus", "AsyncMessageBus", 
     "AsyncCallback", "SyncCallback", "AnyCallback",
@@ -96,6 +104,19 @@ __all__ = [
     "EvolutionMode", "EvolutionStatus", "EvolutionTrigger",
     "EvolutionPattern", "EvolutionRuleType", "MutationRecordType",
     "InnerEvolution", "OuterEvolution", "DualCoreEvolution",
+    # L2 感知层
+    "PerceptionType", "DataQuality", "DriftLevel",
+    "PerceptionEvent", "RealitySnapshot", "TruthClaim", "DriftReport",
+    "MultimodalPerception", "RealityDataPipeline", "TruthReconciliation",
+    "RealitySensor",
+    # L3 推理层
+    "ReasoningStrategy", "TaskStatus", "PathScore",
+    "ReasoningTask", "ReasoningPath", "TaskDAG", "ReasoningResult",
+    "TaskPlanner", "MultiPathReasoning", "ReasoningEngine",
+    # L9 代理层
+    "AgentToolCategory", "ExecutionStatus", "AgentRiskLevel",
+    "Tool", "ExecutionRequest", "ExecutionResult", "UIAction",
+    "ToolRegistry", "ExecutionEngine", "AgentLayer",
     # 审计
     "AuditLog",
 ]

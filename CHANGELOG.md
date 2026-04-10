@@ -39,6 +39,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 最大重构尝试次数限制 + Fallback to Human 机制
   - 变异记录 + 回滚支持
 
+**L2 感知层 - 现实对账引擎**
+- `core/l2_reality_sensor.py`: UI-TARS 集成
+  - 多模态感知器: 屏幕捕获/文本/鼠标/键盘/文件事件
+  - 现实数据管道: 数据清洗 + 事件聚合 + 异常检测
+  - 真相对账器: 声明验证 + 偏离检测 + 告警触发
+
+**L3 推理层 - 多路径推演引擎**
+- `core/l3_reasoning.py`: Deer-flow 集成
+  - 任务规划器: 复杂任务分解 + DAG 依赖管理
+  - 多路径推演: 演绎/归纳/溯因/类比/ReAct/ToT 策略
+  - 路径评分与最优选择
+
+**L9 代理层 - 跨设备执行引擎**
+- `core/l9_agent.py`: UI-TARS 集成
+  - 工具注册中心: 工具发现 + 能力声明 + 白名单管理
+  - 执行引擎: 命令/脚本/API/UI 多模式执行
+  - 风险评估 + 危险命令拦截 + 确认机制
+
 ### Architecture
 
 ```
@@ -46,11 +64,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ↓
 [L0 双重网关] → 硬网关 (<1ms) → 软网关 (语义)
     ↓
+[L2 感知层] → 多模态感知 → 现实对账
+    ↓
+[L3 推理层] → Deer-flow DAG → 多路径推演
+    ↓
 [L4 分级存储] → L1 DAG 工作记忆 → L2 知识图谱
     ↓
 [神经总线] → 事件溯源 → 审计日志
     ↓
 [L6/L7 双核演化] → 内环(Hermes) + 外环(OpenSpace)
+    ↓
+[L9 代理层] → 工具执行 → UI-TARS 交互
 ```
 
 ### Integrations Ready
@@ -58,8 +82,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lossless-claw: L4 L1 DAG 存储
 - Cognee: L4 L2 知识图谱
 - OpenSpace: L7 外环演化引擎
-- Deer-flow: L3 推理层任务规划 (预留接口)
-- UI-TARS: L2/L9 感知与执行 (预留接口)
+- Deer-flow: L3 推理层任务规划
+- UI-TARS: L2 感知层 + L9 代理层
+
+### Tests
+- ✅ L0 双重网关: 资金拦截/系统保护/正常放行
+- ✅ L3 推理引擎: 任务分解/多路径推理
+- ✅ L4 分级存储: DAG存储/FTS检索/知识图谱
+- ✅ 神经总线: 事件发布/链追踪/订阅
+- ✅ L6/L7 演化: 成功模式/规则创建
 
 ---
 
