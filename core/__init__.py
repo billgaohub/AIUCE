@@ -77,6 +77,55 @@ from .l9_agent import (
 
 from .audit import AuditLog
 
+# ── 融合模块（billgaohub 项目深度改造）──────────────────────────────
+
+# L0 合宪性层：主权意志网关（改造自 agent-sovereignty-rules + hermes-agent）
+from .l0_sovereignty_gateway import (
+    SovereigntyPrinciples,
+    DecisionRightsPrinciples,
+    SovereigntyVeto,
+    SovereigntyGateway,
+)
+
+# L0 语义层：意图审查网关（改造自 hermes-agent SCAF 机制）
+from .l0_semantic_gateway import (
+    SemanticConfidence,
+    SemanticAuditResult,
+    SemanticRuleSet,
+    SemanticGateway,
+)
+
+# L3 认知编排层：元认知调度引擎（改造自 teonu-worldmodel + deer-flow）
+from .l3_cognitive_orchestrator import (
+    CognitiveLaws,
+    NodeState,
+    CognitiveNode,
+    CognitiveControl,
+    ReasoningStrategy,
+    StrategySelector,
+    TaskNode,
+    TaskDAG,
+    CognitiveOrchestrator,
+)
+
+# L5 审计层：决策存证系统（改造自 ai-governance-framework）
+from .l5_audit import (
+    TriDomainScore,
+    DecisionType,
+    AuditEntry,
+    DecisionAudit,
+)
+
+# L9 工具注册层：锦衣卫令牌系统（改造自 CLI-Anything + ipipq + smart-file-router）
+from .l9_tool_harness import (
+    ToolDomain,
+    ToolSpec,
+    ToolInvocation,
+    IPIPQClassifier,
+    SmartFileRouter,
+    ToolHarnessRegistry,
+)
+
 __all__ = [
     # constants
     "Layer", "LAYER_OFFICIALS", "MsgType", "RiskLevel", "RISK_THRESHOLDS",
@@ -119,4 +168,15 @@ __all__ = [
     "ToolRegistry", "ExecutionEngine", "AgentLayer",
     # 审计
     "AuditLog",
+    # L0 合宪性层
+    "SovereigntyPrinciples", "DecisionRightsPrinciples", "SovereigntyVeto", "SovereigntyGateway",
+    # L0 语义层
+    "SemanticConfidence", "SemanticAuditResult", "SemanticRuleSet", "SemanticGateway",
+    # L3 认知编排层
+    "CognitiveLaws", "NodeState", "CognitiveNode", "CognitiveControl",
+    "ReasoningStrategy", "StrategySelector", "TaskNode", "TaskDAG", "CognitiveOrchestrator",
+    # L5 审计层
+    "TriDomainScore", "DecisionType", "AuditEntry", "DecisionAudit",
+    # L9 工具注册层
+    "ToolDomain", "ToolSpec", "ToolInvocation", "IPIPQClassifier", "SmartFileRouter", "ToolHarnessRegistry",
 ]
