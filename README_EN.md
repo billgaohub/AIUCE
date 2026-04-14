@@ -2,14 +2,15 @@
 
 [![CI](https://github.com/billgaohub/AIUCE/actions/workflows/ci.yml/badge.svg)](https://github.com/billgaohub/AIUCE/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](https://www.docker.com/)
+[![Python 3.14](https://img.shields.io/badge/python-3.14-blue.svg)](https://www.python.org/downloads/)
+[![Tests](https://img.shields.io/badge/tests-33%20passing-44cc44.svg)](#-tests)
+[![Layers](https://img.shields.io/badge/layers-10%2F10%20active-44cc44.svg)](#-architecture)
 
 > **AIUCE** = **A**I System + **U**niverse + **C**onstitution + **E**volution
 >
-> **Personal AI Infrastructure with Layered Governance**
->
-> Inspired by Ancient Chinese Bureaucratic Wisdom
+> Personal AI Infrastructure with Layered Governance
+
+AIUCE is the distilled essence of **Personal AI Infrastructure**, with four core philosophies embedded in an eleven-layer architecture. **A** maps to L0-L10 full-spectrum perception and reasoning. **U** maps to L10's Shadow Universe (Monte Carlo / A/B testing). **C** maps to L0's Supreme Constitution (one-vote veto). **E** maps to L7's gradual evolution (kernel refactoring).
 
 ---
 
@@ -19,54 +20,21 @@
 
 | Problem | Impact |
 |---------|--------|
-| ❌ **Black Box** | You can't understand why AI made a decision |
+| ❌ **Black Box** | You cannot understand why AI made a decision |
 | ❌ **Unpredictable** | AI evolves in unexpected directions |
-| ❌ **No Veto Power** | You can't stop AI from doing something harmful |
+| ❌ **No Veto Power** | You cannot stop AI from doing harmful things |
 | ❌ **No Memory** | AI forgets context across sessions |
-| ❌ **No Accountability** | You can't trace who made what decision |
+| ❌ **No Accountability** | You cannot trace who made what decision |
 
 ### The AIUCE Solution
 
 | Solution | Layer |
 |----------|-------|
-| ✅ **Constitutional Veto** | L0 - Supreme Constitution with veto power |
-| ✅ **Controlled Evolution** | L7 - Conservative but continuous improvement |
-| ✅ **Full Audit Trail** | L5 - Every decision is logged and traceable |
-| ✅ **Semantic Memory** | L4 - Persistent knowledge across sessions |
-| ✅ **11-Layer Governance** | L0-L10 - Checks and balances at every level |
-
----
-
-## 🚀 Quick Start
-
-### Option 1: Docker (Recommended)
-
-```bash
-# Clone the repository
-git clone https://github.com/billgaohub/aiuce.git
-cd aiuce
-
-# Start with Docker
-docker-compose up -d
-
-# Access the API
-curl http://localhost:8000/health
-```
-
-### Option 2: Manual Installation
-
-```bash
-# Clone and install
-git clone https://github.com/billgaohub/aiuce.git
-cd aiuce
-pip install -r requirements.txt
-
-# Start the API server
-python api.py
-
-# Open Web UI
-open http://localhost:8000/static/index.html
-```
+| ✅ **Constitutional Veto** | L0 — Supreme Constitution with one-vote veto |
+| ✅ **Controlled Evolution** | L7 — Conservative but continuous improvement |
+| ✅ **Full Audit Trail** | L5 — Every decision is logged and traceable |
+| ✅ **Semantic Memory** | L4 — Persistent knowledge across sessions |
+| ✅ **11-Layer Governance** | L0–L10 — Checks and balances at every level |
 
 ---
 
@@ -75,131 +43,196 @@ open http://localhost:8000/static/index.html
 AIUCE implements a unique governance structure inspired by ancient Chinese bureaucratic wisdom:
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    L0 CONSTITUTION                      │
-│         "Emperor's Study" - Supreme Veto Power          │
-├─────────────────────────────────────────────────────────┤
-│                    L1 IDENTITY                          │
-│         "Ministry of Rites" - Boundary Control          │
-├─────────────────────────────────────────────────────────┤
-│                    L2 PERCEPTION                        │
-│         "Censorate" - Reality Reconciliation            │
-├─────────────────────────────────────────────────────────┤
-│                    L3 REASONING                         │
-│         "Grand Council" - Multi-path Reasoning          │
-├─────────────────────────────────────────────────────────┤
-│                    L4 MEMORY                            │
-│         "Hanlin Academy" - Knowledge Storage            │
-├─────────────────────────────────────────────────────────┤
-│                    L5 DECISION                          │
-│         "Supreme Court" - Audit & Logging               │
-├─────────────────────────────────────────────────────────┤
-│                    L6 EXPERIENCE                        │
-│         "Ministry of Personnel" - Daily Review          │
-├─────────────────────────────────────────────────────────┤
-│                    L7 EVOLUTION                         │
-│         "Secretariat" - Self-Improvement                │
-├─────────────────────────────────────────────────────────┤
-│                    L8 INTERFACE                         │
-│         "Ministry of Foreign Affairs" - Model Gateway   │
-├─────────────────────────────────────────────────────────┤
-│                    L9 AGENT                             │
-│         "Imperial Guard" - Execution & Tools            │
-├─────────────────────────────────────────────────────────┤
-│                    L10 SANDBOX                          │
-│         "Astronomical Bureau" - Shadow Universe         │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  L0  WILL          "Qin Shi Huang"  Emperor's Study            │
+│     Sovereignty Gateway + Semantic Gateway                       │
+├─────────────────────────────────────────────────────────────────┤
+│  L1  IDENTITY       "Zhuge Liang"   Ministry of Rites           │
+│     Brain-first entity registry, MECE taxonomy                  │
+├─────────────────────────────────────────────────────────────────┤
+│  L2  PERCEPTION     "Zhang Liang"   Grand Council              │
+│     Multi-format document ingestion, Markdown pipeline           │
+├─────────────────────────────────────────────────────────────────┤
+│  L3  REASONING      "Zhang Liang"   Grand Council              │
+│     Three-level cognitive control + DAG task planning           │
+├─────────────────────────────────────────────────────────────────┤
+│  L4  MEMORY         "Sima Qian"     Hanlin Academy             │
+│     Palace Memory + Code Understanding (AST + Leiden)           │
+├─────────────────────────────────────────────────────────────────┤
+│  L5  DECISION       "Bao Zheng"     Supreme Court              │
+│     Three-domain scoring + hash chain audit                      │
+├─────────────────────────────────────────────────────────────────┤
+│  L6  EXPERIENCE     "Zeng Guofan"   Ministry of Personnel      │
+│     Daily review, pattern recognition, experience accumulation   │
+├─────────────────────────────────────────────────────────────────┤
+│  L7  EVOLUTION      "Shang Yang"    Secretariat               │
+│     GDPVal benchmark + Skill self-evolution                      │
+├─────────────────────────────────────────────────────────────────┤
+│  L8  INTERFACE      "Zhang Qian"    Ministry of Foreign Affairs│
+│     Multi-provider API gateway (OpenAI / Claude / Qwen / DeepSeek)│
+├─────────────────────────────────────────────────────────────────┤
+│  L9  AGENT          "Han Xin"       Imperial Guard             │
+│     Constitutional tool registry + intelligent routing           │
+├─────────────────────────────────────────────────────────────────┤
+│  L10 SANDBOX        "Zhuangzi"      Astronomical Bureau        │
+│     Shadow Universe simulation, Monte Carlo testing              │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Layer Responsibilities
+### Layer Detail
 
-| Layer | Name | Responsibility | Key Feature |
-|-------|------|----------------|-------------|
-| **L0** | Constitution | Supreme will, veto power | 🛡️ One-vote veto |
-| **L1** | Identity | Persona boundaries | 🔒 Prevent overreach |
-| **L2** | Perception | Reality data | 📊 Ground truth |
-| **L3** | Reasoning | Multi-path analysis | 🧠 25 mind models |
-| **L4** | Memory | Knowledge storage | 📚 Semantic indexing |
-| **L5** | Decision | Audit & logging | ⚖️ Full traceability |
-| **L6** | Experience | Daily review | 🔄 Pattern recognition |
-| **L7** | Evolution | Self-improvement | 🔄 Kernel refactoring |
-| **L8** | Interface | Model gateway | 🌐 Multi-provider API |
-| **L9** | Agent | Execution | ⚔️ Tool scheduling |
-| **L10** | Sandbox | Shadow simulation | 🌌 Monte Carlo testing |
+| Layer | Name | Minister | Core Module | Origin | Status |
+|-------|------|---------|-----------|--------|--------|
+| **L0** | Will | Qin Shi Huang | `l0_sovereignty_gateway.py` | agent-sovereignty-rules | ✅ |
+| **L0** | Semantic | Wei Zheng | `l0_semantic_gateway.py` | hermes-agent | ✅ |
+| **L1** | Identity | Zhuge Liang | `l1_identity_brain.py` | gbrain | ✅ |
+| **L2** | Perception | Zhang Liang | `l2_document_ingestor.py` | markitdown | ✅ |
+| **L3** | Reasoning | Zhang Liang | `l3_cognitive_orchestrator.py` | teonu-worldmodel + deer-flow | ✅ |
+| **L4** | Memory | Sima Qian | `l4_palace_memory.py` | mempalace | ✅ |
+| **L4** | Memory | Sima Qian | `l4_code_understanding.py` | graphify | ✅ |
+| **L5** | Decision | Bao Zheng | `l5_audit.py` | ai-governance-framework | ✅ |
+| **L6** | Experience | Zeng Guofan | `l6_experience.py` | — | ✅ |
+| **L7** | Evolution | Shang Yang | `l7_evolution_engine.py` | OpenSpace | ✅ |
+| **L8** | Interface | Zhang Qian | `l8_interface.py` | — | ✅ |
+| **L9** | Agent | Han Xin | `l9_tool_harness.py` | CLI-Anything + ipipq | ✅ |
+| **L10** | Sandbox | Zhuangzi | `l10_sandbox.py` | — | ✅ |
+
+**Progress**: 10/10 core layer modules implemented (**L6 Experience layer completed**)
 
 ---
 
-## 🔐 Security Features
+## 🔬 Phase 1–3 Fusion Results
 
-### API Security (v1.1.0)
+Based on the principle of **"Concept Transfer > Code Reuse"**, we extracted core philosophies from 5 billgaohub projects and 5 external open-source projects, reconstructing them as native AIUCE components.
 
-- **API Key Authentication**: All endpoints require `X-API-Key` header
-- **Rate Limiting**: 100 requests/minute (configurable)
-- **Exception Sanitization**: No internal errors exposed
-- **Request Tracking**: All errors include `request_id`
+### Fusion Sources
+
+| Module | Origin | Core Concept |
+|--------|--------|-------------|
+| L0 SovereigntyGateway | agent-sovereignty-rules | P1-P7 Constitution + Keyword Veto |
+| L0 SemanticGateway | hermes-agent | Semantic confidence + Compliance gateway |
+| L1 IdentityBrain | gbrain | MECE entity directory + Brain-first query |
+| L2 DocumentIngestor | markitdown | Universal Markdown conversion + dual export |
+| L3 CognitiveOrchestrator | teonu-worldmodel + deer-flow | Three-level cognitive control + DAG planning |
+| L4 PalaceMemory | mempalace | Raw Verbatim + Memory Palace + 96.6% retrieval rate |
+| L4 CodeUnderstanding | graphify | AST zero-LLM + Leiden community detection |
+| L5 DecisionAudit | ai-governance-framework | Three-domain scoring + hash chain |
+| L7 EvolutionEngine | OpenSpace | GDPVal benchmark + Skill self-evolution |
+| L9 ToolHarness | CLI-Anything + ipipq | Constitutional registry + intelligent routing |
+
+Full reports:
+- [docs/reports/aiuce-billgaohub-fusion-20260414.md](docs/reports/aiuce-billgaohub-fusion-20260414.md) — Phase 1
+- [docs/reports/aiuce-billgaohub-fusion-phase2-3-20260414.md](docs/reports/aiuce-billgaohub-fusion-phase2-3-20260414.md) — Phase 2–3
+
+---
+
+## 🚀 Quick Start
 
 ```bash
-# Set API keys
-export AIUCE_API_KEYS="your-secret-key-1,your-secret-key-2"
+# Clone
+git clone https://github.com/billgaohub/AIUCE.git
+cd AIUCE
 
-# Make authenticated request
-curl -H "X-API-Key: your-secret-key-1" http://localhost:8000/status
+# Activate virtual environment (Python 3.14)
+source .venv/bin/activate
+
+# Run tests
+python3 -m pytest tests/test_phase1.py tests/test_phase2.py -v
 ```
 
-### Execution Sandbox (L9)
+**Initialize memory directories**:
 
-- **Command Whitelist**: Only safe commands allowed
-- **Dangerous Pattern Detection**: Auto-block risky operations
-- **Timeout Limits**: 30s default, 120s max
-- **Risk Classification**: LOW/MEDIUM/HIGH/CRITICAL
+```python
+from core.l1_identity_brain import IdentityBrain
+from core.l4_palace_memory import PalaceMemory
+
+brain = IdentityBrain()    # ~/.aiuce/brain/
+palace = PalaceMemory()   # ~/.aiuce/palace/
+```
+
+**Execute cognitive tasks**:
+
+```python
+from core.l3_cognitive_orchestrator import CognitiveOrchestrator
+
+oc = CognitiveOrchestrator()
+dag = oc.plan("Prepare backup plans if it rains tomorrow")
+result = oc.execute(dag)
+```
+
+**Audit decisions**:
+
+```python
+from core.l5_audit import DecisionAudit, AuditEntry, DecisionType
+
+audit = DecisionAudit()
+entry = AuditEntry(
+    entry_id="task-001",
+    session_id="session-x",
+    layer="L3",
+    timestamp="2026-04-14T12:00:00",
+    decision_type="action",
+    intent="Test intent",
+    reasoning="Test reasoning",
+    output="Test output",
+    sovereignty_passed=True,
+)
+audit.log(entry)
+```
+
+---
+
+## ✅ Tests
+
+```
+tests/
+├── test_phase1.py     # L0/L3/L5/L9 module tests ✅
+└── test_phase2.py     # L1/L2/L4/L7 module tests ✅
+```
+
+**Run all tests**:
+
+```bash
+source .venv/bin/activate
+python3 -m pytest tests/test_phase1.py tests/test_phase2.py -v
+```
+
+**Result**: `33 passed` — covers all L0–L9 fusion modules
+
+---
+
+## 📡 Multi-Channel Support
+
+| Platform | Status | Capability |
+|----------|--------|------------|
+| Feishu | ✅ Supported | Send/receive messages, webhook |
+| Telegram | ✅ Supported | Bot messages, callback queries, webhook |
+| Webhook | ✅ Supported | Custom HTTP callbacks |
+
+See [docs/channels.md](docs/channels.md).
+
+---
+
+## 🔧 Technical Specs
+
+- **Python**: 3.14
+- **Core dependencies**: pydantic 2.12.5
+- **Optional**: markitdown (doc conversion), ChromaDB (vector search), faster-whisper (audio/video)
+- **Virtual environment**: `.venv/` (pre-configured)
+- **Test framework**: pytest (33 passing)
 
 ---
 
 ## 🌐 Multi-Model Support (L8)
 
-AIUCE supports multiple AI providers:
-
 | Provider | Model | Status |
 |----------|-------|--------|
-| OpenAI | GPT-4o-mini | ✅ Supported |
-| Anthropic | Claude 3.5 Sonnet | ✅ Supported |
-| Alibaba | Qwen-Plus | ✅ Supported |
-| DeepSeek | DeepSeek-Chat | ✅ Supported |
-| Local | Ollama (Llama3) | ✅ Supported |
-| Local | MLX (Qwen2.5-7B) | ✅ Supported |
-
-```python
-from aiuce import AIUCE
-
-# Initialize with preferred provider
-ai = AIUCE(provider="openai")
-
-# Or use local model
-ai = AIUCE(provider="mlx")
-
-# Process with full governance
-response = ai.process("Your request here")
-```
-
----
-
-## 📊 Architecture Philosophy
-
-> "Governing a large country is like cooking a small fish" — Lao Tzu
-
-AIUCE applies ancient governance wisdom to modern AI:
-
-### 1. **Separation of Powers**
-Each layer has clear responsibilities. No single layer can dominate.
-
-### 2. **Checks and Balances**
-L0/L1 have veto power. L5 logs all decisions. L6 reviews daily.
-
-### 3. **Accountability**
-Every decision is traceable. Every action is auditable.
-
-### 4. **Controlled Evolution**
-L7 enables self-improvement, but changes require approval.
+| OpenAI | GPT-4o / GPT-4o-mini | ✅ |
+| Anthropic | Claude 3.5 Sonnet | ✅ |
+| Alibaba | Qwen-Plus / Qwen2.5 | ✅ |
+| DeepSeek | DeepSeek-Chat | ✅ |
+| Local | Ollama (Llama3) | ✅ |
+| Local | MLX (Qwen2.5-7B) | ✅ |
 
 ---
 
@@ -207,49 +240,51 @@ L7 enables self-improvement, but changes require approval.
 
 | Document | Description |
 |----------|-------------|
-| [Quick Start](QUICKSTART.md) | 5-minute setup guide |
-| [Architecture](docs/architecture.md) | Deep dive into 11 layers |
-| [API Reference](docs/api_reference.md) | Complete API documentation |
-| [Philosophy](docs/philosophy.md) | Design principles |
-| [Security](SECURITY.md) | Security features and policies |
-| [Changelog](CHANGELOG.md) | Version history |
+| [fusion-report-phase1](docs/reports/aiuce-billgaohub-fusion-20260414.md) | Phase 1 fusion report |
+| [fusion-report-phase2-3](docs/reports/aiuce-billgaohub-fusion-phase2-3-20260414.md) | Phase 2–3 fusion report |
+| [architecture](docs/architecture.md) | 11-layer architecture deep dive |
+| [integration](docs/integration.md) | Open-source integration guide |
+| [channels](docs/channels.md) | Multi-channel configuration |
 
 ---
 
-## 🤝 Contributing
+## 🤝 Related Projects
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+| Project | Status | Note |
+|---------|--------|------|
+| [AIUCE](https://github.com/billgaohub/AIUCE) | ✅ Active | Main repo — Personal AI Infrastructure |
+| [IPIPQ](https://github.com/billgaohub/ipipq) | ✅ Active | AI file auto-organizer |
+| [smart-file-router](https://github.com/billgaohub/smart-file-router) | ✅ Active | Intelligent file classifier (integrated into L9) |
 
-### Development Setup
+---
 
-```bash
-# Install development dependencies
-pip install -r requirements-dev.txt
+## 📜 Architecture Philosophy
 
-# Run tests
-pytest tests/
+> "Governing a large country is like cooking a small fish" — Lao Tzu
 
-# Format code
-black .
+AIUCE applies ancient governance wisdom to modern AI:
 
-# Type checking
-mypy aiuce/
-```
+- **Layered governance** keeps complex systems controllable (L1–L10, each with a role)
+- **Checks and balances** prevent any layer from dominating (L0 veto)
+- **Audit trails** make every decision traceable (L5 hash chain)
+- **Controlled evolution** enables continuous improvement (L7 GDPVal)
+
+---
+
+## 🔐 Security Features
+
+- **API Key Authentication**: All endpoints require `X-API-Key` header
+- **Rate Limiting**: 100 req/min (configurable)
+- **Execution Sandbox (L9)**: Command whitelist, dangerous pattern detection, timeout limits
+- **Risk Classification**: LOW / MEDIUM / HIGH / CRITICAL
 
 ---
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file.
+MIT License — see [LICENSE](LICENSE)
 
 ---
 
-## 🌟 Star History
-
-If you find AIUCE useful, please consider giving it a star ⭐
-
----
-
-**AIUCE** - Personal AI Infrastructure with Layered Governance
-
-🏯 *Bringing Ancient Wisdom to Modern AI*
+**AIUCE** — Personal AI Infrastructure with Layered Governance  
+🏯 *治大国若烹小鲜 · Governing a large country is like cooking a small fish*
