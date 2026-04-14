@@ -44,6 +44,12 @@ class LayerID(Enum):
     L10_SANDBOX = 10
 
 
+class LayerLevel(str, Enum):
+    """层级名称（字符串）"""
+    L0 = "L0"; L1 = "L1"; L2 = "L2"; L3 = "L3"; L4 = "L4"
+    L5 = "L5"; L6 = "L6"; L7 = "L7"; L8 = "L8"; L9 = "L9"; L10 = "L10"
+
+
 class MessageType(Enum):
     """消息类型"""
     QUERY = "query"
@@ -304,3 +310,61 @@ class Result(Generic[T]):
     def unwrap_or(self, default: T) -> T:
         """获取值或默认值"""
         return self.value if self.success else default
+
+
+
+# ═══════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════
+# Re-export from other modules (for repo/__init__.py compatibility)
+# ═══════════════════════════════════════════════════════════════════
+
+# core/ submodules
+try:
+    from .memory_sal import MemoryEntry
+except Exception:
+    MemoryEntry = None
+
+try:
+    from .l9_agent import ExecutionResult
+except Exception:
+    ExecutionResult = None
+
+try:
+    from .l10_sandbox import SimulationResult
+except Exception:
+    SimulationResult = None
+
+try:
+    from .l3_reasoning import ReasoningPath
+except Exception:
+    ReasoningPath = None
+
+try:
+    from .l8_interface import ModelProvider, ModelResponse
+except Exception:
+    ModelProvider = None; ModelResponse = None
+
+# Repo-level modules
+import sys as _sys
+_repo_root = __file__.rsplit('/core/', 1)[0]
+if _repo_root not in _sys.path:
+    _sys.path.insert(0, _repo_root)
+
+try:
+    from l3_reasoning import MindModel
+except Exception:
+    MindModel = None
+
+try:
+    from l10_sandbox import SimulationScenario
+except Exception:
+    SimulationScenario = None
+
+try:
+    from l9_agent import Tool
+except Exception:
+    Tool = None
+
+# SystemRunResult defined in system.py - forward reference
+SystemRunResult = None  # Set by repo/__init__.py

@@ -253,24 +253,22 @@ class PalaceEngine:
         metadata = metadata or {}
 
         # 创建记录
+        # hash_chain = 当前记录的哈希（下一条记录将引用它作为 previous_hash）
+        current_hash = MemoryRecord.compute_hash(raw_text, self._current_hash)
         record = MemoryRecord(
             record_id=hashlib.sha256(f"{raw_text}{datetime.now()}".encode()).hexdigest()[:16],
             room_id=room_id,
             raw_text=raw_text,
             speaker=speaker,
             timestamp=datetime.now(),
-            hash_chain=self._current_hash,
+            hash_chain=current_hash,  # 当前记录的哈希（不是上一条的）
             metadata={**metadata, "wing": wing.value, "hall": hall, "closet": closet},
             tags=set(tags),
             sources=sources,
         )
-        # 验证链（不阻止写入，仅警告）
-        if self._current_hash:
-            # 上一条记录应与当前链头匹配
-            pass  # 简化处理
 
         # 更新哈希链头
-        self._current_hash = record.hash_chain
+        self._current_hash = current_hash
 
         # 获取或创建房间
         if room_id not in self.rooms:
@@ -290,7 +288,7 @@ class PalaceEngine:
         self.date_index[date_key].append((room_id, record.record_id))
 
         # 哈希链文件
-        (self.palace_path / ".chain_head").write_text(self._current_hash)
+        (self.palace_path / ".chain_head").write_text(record.hash_chain or "GENESIS")
 
         logger.info(f"Palace store: {record.record_id} in {room_id} (wing={wing.value})")
         return record

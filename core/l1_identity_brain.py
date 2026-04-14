@@ -412,7 +412,7 @@ class BrainEngine:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
             entry = f"\n\n---\n**[{timestamp}]**\n\n{conversation.strip()}\n"
             page.content += entry
-            page.mentions()  # 更新 mention_count
+            page.mention_count += 1  # 更新 mention_count
 
             # 保存
             self._save_page(page)
