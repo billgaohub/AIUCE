@@ -2,128 +2,171 @@
 
 [![CI](https://github.com/billgaohub/AIUCE/actions/workflows/ci.yml/badge.svg)](https://github.com/billgaohub/AIUCE/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](https://www.docker.com/)
+[![Python 3.14](https://img.shields.io/badge/python-3.14-blue.svg)](https://www.python.org/downloads/)
+[![Tests](https://img.shields.io/badge/tests-33%20passing-44cc44.svg)](#-tests)
+[![Layers](https://img.shields.io/badge/layers-9%2F10%20active-7b2d8b.svg)](#-architecture)
 
 > **AIUCE** = **A**I System + **U**niverse + **C**onstitution + **E**volution
 >
 > Personal AI Infrastructure with Layered Governance
 
-AIUCE 不仅是本项目的代号，更是这套 Personal AI Infrastructure 核心运行机制的微缩密码。它由四个代表系统底层哲学的核心概念缩写而成，完美映射了我们基于「十一层架构」的分层治理、主权制衡与渐进式演化思想。
+AIUCE 是 Personal AI Infrastructure 的微缩密码，由四个核心哲学缩写映射十一层架构：
+**A** 对应 L0-L10 全层感知与推理，**U** 对应 L10 影子宇宙（蒙特卡洛/A/B测试），
+**C** 对应 L0 最高宪法（一票否决），**E** 对应 L7 渐进式变法（内核重构）。
 
 ---
 
 ## 命名释义
 
-### 🤖 A - AI System (十一层架构人工智能)
+### 🤖 A — AI System (十一层架构人工智能)
 
-代表我们构建的具备分层治理、制衡机制与记忆能力的有机体。系统借鉴了中国古代官僚体系的智慧，打破了单一大模型的「黑箱」局限，实现了从感知、推理、决策到物理执行的完整多体协同生命周期。
+具备分层治理、制衡机制与记忆能力的有机体。从感知、推理、决策到物理执行的完整多体协同。
 
-**对应层级**: L0-L10 全架构
+**对应层级**: L0–L10 全架构
 
----
+### 🌌 U — Universe (影子宇宙)
 
-### 🌌 U - Universe (影子宇宙)
+L10 沙盒层（庄子/钦天监）：在虚拟「影子宇宙」中通过蒙特卡洛模拟和 A/B 测试，模拟百万次失败，在现实中坍缩出一条可行路径。
 
-对应系统 **L10 沙盒层（庄子/钦天监）** 的核心机制。系统在虚拟的「影子宇宙」中通过蒙特卡洛模拟和 A/B 测试，模拟百万次失败，以此来验证高风险决策，只为在现实中坍缩出一条可行的生路。
+### ⚖️ C — Constitution (最高宪法)
 
-**核心能力**:
-- 蒙特卡洛模拟
-- A/B 测试验证
-- 影子推演空间
+L0 意志层（秦始皇/御书房）：系统的最高权力中心，对一切偏离主权意志的指令行使「一票否决权」。
 
----
+### 🔄 E — Evolution (渐进式演化)
 
-### ⚖️ C - Constitution (最高宪法)
-
-对应系统 **L0 意志层（秦始皇/御书房）** 的绝对主权。作为系统的最高权力中心，它存放着最高宪法，依靠严格的合宪性检查，对一切偏离主权意志的指令行使「一票否决权」，确保 AI 永远处于绝对可控的轨道上。
-
-**核心能力**:
-- 一票否决权
-- 合宪性检查
-- 最高意志守护
+L7 演化层（商鞅/中书省）：通过反馈循环，一旦经验层证明旧逻辑过时，便在物理层面重构内核代码，实现真正的自动变法。
 
 ---
 
-### 🔄 E - Evolution (渐进式演化)
+## 🏛️ 十一层架构
 
-代表系统的核心生命力——渐进式演化哲学，对应 **L7 演化层（商鞅/中书省）** 的变法机制。系统通过持续的反馈循环，一旦经验层证明旧逻辑已过时，便会立即在物理层面重构内核代码与权重，实现真正的系统自动演化与自我变法。
+| 层 | 架构层 | 名臣 | 部门 | 核心模块 | 来源 | 状态 |
+|----|--------|------|------|----------|------|------|
+| **L0** | 意志层 | 秦始皇 | 御书房 | `l0_sovereignty_gateway.py` | agent-sovereignty-rules | ✅ |
+| **L0** | 语义层 | 魏征 | 都察院 | `l0_semantic_gateway.py` | hermes-agent | ✅ |
+| **L1** | 身份层 | 诸葛亮 | 宗人府 | `l1_identity_brain.py` | gbrain | ✅ |
+| **L2** | 感知层 | 张良 | 军机处 | `l2_document_ingestor.py` | markitdown | ✅ |
+| **L3** | 推理层 | 张良 | 军机处 | `l3_cognitive_orchestrator.py` | teonu-worldmodel + deer-flow | ✅ |
+| **L4** | 记忆层 | 司马迁 | 翰林院 | `l4_palace_memory.py` | mempalace | ✅ |
+| **L4** | 记忆层 | 司马迁 | 翰林院 | `l4_code_understanding.py` | graphify | ✅ |
+| **L5** | 决策层 | 包拯 | 大理寺 | `l5_audit.py` | ai-governance-framework | ✅ |
+| **L6** | 经验层 | 曾国藩 | 吏部 | — | — | ⬜ 待 Phase 4 |
+| **L7** | 演化层 | 商鞅 | 中书省 | `l7_evolution_engine.py` | OpenSpace | ✅ |
+| **L8** | 接口层 | 张骞 | 礼部 | `l8_interface.py` | — | ✅ |
+| **L9** | 代理层 | 韩信 | 锦衣卫 | `l9_tool_harness.py` | CLI-Anything + ipipq | ✅ |
+| **L10** | 沙盒层 | 庄子 | 钦天监 | `l10_sandbox.py` | — | ✅ |
 
-**核心能力**:
-- 每日复盘机制
-- 成功模式固化
-- 内核自动重构
-
----
-
-## 十一层架构
-
-| 层级 | 架构层 | 名臣 | 部门 | 核心能力 | AIUCE 映射 |
-|------|--------|------|------|----------|------------|
-| L0 | 意志层 | 秦始皇 | 御书房 | 最高宪法，一票否决 | **C**onstitution |
-| L1 | 身份层 | 诸葛亮 | 宗人府 | 人设边界，防止越权 | AI System |
-| L2 | 感知层 | 魏征 | 都察院 | 现实对账，只说真话 | AI System |
-| L3 | 推理层 | 张良 | 军机处 | 多路径推演 | AI System |
-| L4 | 记忆层 | 司马迁 | 翰林院 | 语义索引，史料编纂 | AI System |
-| L5 | 决策层 | 包拯 | 大理寺 | 决策存证，审计落槌 | AI System |
-| L6 | 经验层 | 曾国藩 | 吏部 | 复盘机制，偏离扫描 | **E**volution |
-| L7 | 演化层 | 商鞅 | 中书省 | 内核重构，物理变法 | **E**volution |
-| L8 | 接口层 | 张骞 | 礼部 | 算力外交，模型调用 | AI System |
-| L9 | 代理层 | 韩信 | 锦衣卫 | 跨设备执行，工具调度 | AI System |
-| L10 | 沙盒层 | 庄子 | 钦天监 | 影子宇宙，模拟推演 | **U**niverse |
+**进度**: 9/10 层核心模块已实现（L6 经验层待 Phase 4）
 
 ---
 
-## 核心特性
+## 🧠 Phase 1–3 深度融合成果
 
-### 🏛️ 分层治理
-- 每层职责明确，互不越权
-- L0/L1 拥有否决权，制衡机制完善
-- 数据流清晰：感知 → 推理 → 决策 → 执行
+基于「理念移植 > 代码复用」原则，从 5 个 billgaohub 项目和 5 个外部开源项目中提取核心理念，重构为 AIUCE 原生组件。
 
-### 🔄 渐进演化
-- L6 每日复盘，扫描偏离度
-- L7 自动变法，重构内核
-- 保守但持续的自我改进
+### 融合来源一览
 
-### 🔒 安全可控
-- L0 宪法一票否决
-- L10 沙盒模拟验证
-- 全链路审计日志
+| 模块 | 来源 | 核心理念 |
+|------|------|---------|
+| L0 SovereigntyGateway | agent-sovereignty-rules | P1-P7 宪法 + 关键词否决 |
+| L0 SemanticGateway | hermes-agent | 语义置信度 + 合规网关 |
+| L1 IdentityBrain | gbrain | MECE 实体目录 + Brain-first 查询 |
+| L2 DocumentIngestor | markitdown | 万物转 Markdown + 双轨输出 |
+| L3 CognitiveOrchestrator | teonu-worldmodel + deer-flow | 三层认知控制 + DAG 任务规划 |
+| L4 PalaceMemory | mempalace | Raw Verbatim + 记忆宫殿 + 96.6% 检索率 |
+| L4 CodeUnderstanding | graphify | AST 零 LLM + Leiden 社区检测 |
+| L5 DecisionAudit | ai-governance-framework | 三域评分 + 哈希链 |
+| L7 EvolutionEngine | OpenSpace | GDPVal 基准 + Skill 自演化 |
+| L9 ToolHarness | CLI-Anything + ipipq | 合宪性注册 + 智能路由 |
 
-### 🌐 开放集成
-- FastAPI 后端服务
-- Web 可视化界面
-- Docker 容器化部署
-
-### 📡 多入口通道
-- 飞书机器人适配器（支持群聊/私聊消息收发）
-- Telegram Bot 适配器（支持命令/回调查询）
-- 统一 ChannelManager，支持多平台并发接入
-- Webhook 接收 + API 主动推送双模式
+详细报告：[docs/reports/aiuce-billgaohub-fusion-20260414.md](docs/reports/aiuce-billgaohub-fusion-20260414.md)
 
 ---
 
-## 快速开始
+## ✅ 测试
 
-```bash
-# 克隆仓库
-git clone https://github.com/billgaohub/aiuce.git
-cd aiuce
-
-# 一键启动
-./run.sh
+```
+tests/
+├── test_layers.py      # 原有（引用旧类名，待清理）
+├── test_system.py      # 原有（引用旧类名，待清理）
+├── test_phase1.py      # L0/L3/L5/L9 模块测试 ✅
+└── test_phase2.py      # L1/L2/L4/L7 模块测试 ✅
 ```
 
-访问 http://localhost:8000/static/index.html 查看 Web 界面。
+**运行测试**:
+
+```bash
+# 激活虚拟环境
+source .venv/bin/activate
+
+# 运行所有测试
+.venv/bin/python3 -m pytest tests/ -v
+
+# 仅运行 Phase 1-2（33 passing）
+.venv/bin/python3 -m pytest tests/test_phase1.py tests/test_phase2.py -v
+```
+
+**测试结果**: `33 passed` — 覆盖 L0–L9 所有新融合模块
+
+---
+
+## 🛠️ 快速开始
+
+```bash
+# 克隆
+git clone https://github.com/billgaohub/AIUCE.git
+cd AIUCE
+
+# 激活虚拟环境（Python 3.14）
+source .venv/bin/activate
+
+# 运行测试
+python3 -m pytest tests/test_phase1.py tests/test_phase2.py -v
+```
+
+**初始化记忆目录**:
+
+```python
+from core.l1_identity_brain import IdentityBrain
+from core.l4_palace_memory import PalaceMemory
+
+brain = IdentityBrain()   # ~/.aiuce/brain/
+palace = PalaceMemory()  # ~/.aiuce/palace/
+```
+
+**执行认知任务**:
+
+```python
+from core.l3_cognitive_orchestrator import CognitiveOrchestrator
+
+oc = CognitiveOrchestrator()
+dag = oc.plan("明天下雨准备备选方案")
+result = oc.execute(dag)
+```
+
+**审计决策**:
+
+```python
+from core.l5_audit import DecisionAudit, AuditEntry, DecisionType
+
+audit = DecisionAudit()
+entry = AuditEntry(
+    entry_id="task-001",
+    session_id="session-x",
+    layer="L3",
+    timestamp="2026-04-14T12:00:00",
+    decision_type="action",
+    intent="测试意图",
+    reasoning="测试推理",
+    output="测试输出",
+    sovereignty_passed=True,
+)
+audit.log(entry)
+```
 
 ---
 
 ## 📡 多入口通道
-
-AIUCE 支持多 IM 平台接入，统一消息格式，集中路由管理。
-
-### 支持的平台
 
 | 平台 | 状态 | 能力 |
 |------|------|------|
@@ -131,79 +174,60 @@ AIUCE 支持多 IM 平台接入，统一消息格式，集中路由管理。
 | Telegram | ✅ 支持 | Bot 消息、回调查询、Webhook |
 | Webhook | ✅ 支持 | 自定义 HTTP 回调 |
 
-### 快速配置
-
-```bash
-# 飞书配置
-export FEISHU_APP_ID=cli_xxx
-export FEISHU_APP_SECRET=xxx
-export FEISHU_VERIFICATION_TOKEN=xxx
-
-# Telegram 配置
-export TELEGRAM_BOT_TOKEN=xxx:xxx
-```
-
-### API 端点
-
-```
-POST /webhook/feishu    - 飞书消息接收
-POST /webhook/telegram  - Telegram 消息接收
-GET  /channels          - 通道状态列表
-POST /channels/broadcast - 广播消息到所有通道
-```
-
-详细文档见 [docs/channels.md](docs/channels.md)。
+配置见 [docs/channels.md](docs/channels.md)。
 
 ---
 
-## 架构哲学
+## 🔧 技术规格
 
-> "治大国若烹小鲜" —— 老子
-
-AIUCE 系统借鉴中国古代两千年的官僚治理智慧，为现代 AI 系统提供一种可持续的治理模式：
-
-- **分层**让复杂系统可控
-- **制衡**让权力不被滥用
-- **审计**让决策可追溯
-- **演化**让系统持续改进
-
----
-
-## 许可证
-
-MIT License - 详见 [LICENSE](LICENSE) 文件
+- **Python**: 3.14
+- **核心依赖**: pydantic 2.12.5
+- **可选依赖**: markitdown（文档转换）、ChromaDB（向量检索）、faster-whisper（音视频转录）
+- **虚拟环境**: `.venv/`（已配置）
+- **测试框架**: pytest（33 passing）
 
 ---
 
 ## 📚 文档
 
-- [快速开始](QUICKSTART.md) - 5分钟上手
-- [架构设计](docs/architecture.md) - 深入了解十一层架构
-- [多入口通道](docs/channels.md) - 飞书/Telegram 集成指南
-- [开源集成指南](docs/integration.md) - 如何集成 Deer-flow、Hermes 等组件
-- [API 参考](docs/api_reference.md) - 完整的 API 文档
-- [设计哲学](docs/philosophy.md) - AIUCE 的设计思想
-- [贡献指南](CONTRIBUTING.md) - 如何参与贡献
-- [更新日志](CHANGELOG.md) - 版本历史
+| 文档 | 内容 |
+|------|------|
+| [fusion-phase2-3-20260414](docs/reports/aiuce-billgaohub-fusion-phase2-3-20260414.md) | Phase 2-3 融合完整报告 |
+| [aiuce-billgaohub-fusion-20260414](docs/reports/aiuce-billgaohub-fusion-20260414.md) | Phase 1 融合完整报告 |
+| [github-ecosystem-analysis-20260414](docs/reports/github-ecosystem-analysis-20260414.md) | 外部生态分析 |
+| [architecture](docs/architecture.md) | 十一层架构详解 |
+| [integration](docs/integration.md) | 开源集成指南 |
+
+---
 
 ## 🚀 社区项目
 
 | 项目 | 状态 | 说明 |
 |------|------|------|
-| [IPIPQ](https://github.com/billgaohub/ipipq) | ✅ Active | AI 文件自动整理工具（主变现产品） |
-| [teonu-worldmodel](https://github.com/billgaohub/teonu-worldmodel) | ✅ Active | 元认知调度引擎（已合并至 AGF） |
-| [agent-sovereignty-rules](https://github.com/billgaohub/agent-sovereignty-rules) | ✅ Active | 决策权保护框架（已合并至 AGF） |
-| [smart-file-router](https://github.com/billgaohub/smart-file-router) | ✅ Active | 智能文件分类引擎（已演进为 IPIPQ） |
-
-## 🤝 贡献
-
-我们欢迎所有形式的贡献！请查看 [CONTRIBUTING.md](CONTRIBUTING.md) 了解如何参与。
-
-## 📄 许可证
-
-本项目采用 [MIT License](LICENSE) 开源协议。
+| [AIUCE](https://github.com/billgaohub/AIUCE) | ✅ Active | Personal AI Infrastructure（主仓库） |
+| [IPIPQ](https://github.com/billgaohub/ipipq) | ✅ Active | AI 文件自动整理工具 |
+| [smart-file-router](https://github.com/billgaohub/smart-file-router) | ✅ Active | 智能文件分类引擎（已融合至 L9） |
 
 ---
 
-**AIUCE** - Personal AI Infrastructure with Layered Governance  
+## 架构哲学
+
+> "治大国若烹小鲜" — 老子
+
+AIUCE 借鉴中国古代官僚治理智慧：
+
+- **分层**让复杂系统可控（L1–L10 各司其职）
+- **制衡**让权力不被滥用（L0 否决权）
+- **审计**让决策可追溯（L5 哈希链）
+- **演化**让系统持续改进（L7 GDPVal 自演化）
+
+---
+
+## 许可证
+
+MIT License — 详见 [LICENSE](LICENSE)
+
+---
+
+**AIUCE** — Personal AI Infrastructure with Layered Governance  
 🏯 治大国若烹小鲜
