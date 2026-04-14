@@ -126,6 +126,56 @@ from .l9_tool_harness import (
     ToolHarnessRegistry,
 )
 
+# ── Phase 2-3 新融合模块（2026-04-14）──────────────────────────────
+
+# L1 身份脑 + 知识库（改造自 gbrain）
+from .l1_identity_brain import (
+    MECEWing,
+    EntityRef,
+    BrainPage,
+    BrainEngine,
+    IdentityBrain,
+)
+
+# L2 文档摄取器（改造自 markitdown）
+from .l2_document_ingestor import (
+    DocFormat,
+    IngestResult,
+    FormatDetector,
+    MarkdownNormalizer,
+    DocumentIngestor,
+)
+
+# L4 记忆宫殿（改造自 mempalace）
+from .l4_palace_memory import (
+    PalaceWing,
+    MemoryRoom,
+    MemoryRecord,
+    PalaceEngine,
+    PalaceMemory,
+)
+
+# L4 代码理解（改造自 graphify）
+from .l4_code_understanding import (
+    RelationshipType,
+    CodeNode,
+    CodeGraph,
+    ASTExtractor,
+    LeidenCommunityDetector,
+    CodeUnderstandingEngine,
+)
+
+# L7 自演化引擎（改造自 OpenSpace）
+from .l7_evolution_engine import (
+    GDPValMetrics,
+    EvolutionType,
+    EvolutionStatus,
+    EvolutionCandidate,
+    SkillHealthRecord,
+    SkillQualityMonitor,
+    EvolutionEngine,
+)
+
 __all__ = [
     # constants
     "Layer", "LAYER_OFFICIALS", "MsgType", "RiskLevel", "RISK_THRESHOLDS",
@@ -179,4 +229,15 @@ __all__ = [
     "TriDomainScore", "DecisionType", "AuditEntry", "DecisionAudit",
     # L9 工具注册层
     "ToolDomain", "ToolSpec", "ToolInvocation", "IPIPQClassifier", "SmartFileRouter", "ToolHarnessRegistry",
+    # L1 身份脑 + 知识库（gbrain）
+    "MECEWing", "EntityRef", "BrainPage", "BrainEngine", "IdentityBrain",
+    # L2 文档摄取器（markitdown）
+    "DocFormat", "IngestResult", "FormatDetector", "MarkdownNormalizer", "DocumentIngestor",
+    # L4 记忆宫殿（mempalace）
+    "PalaceWing", "MemoryRoom", "MemoryRecord", "PalaceEngine", "PalaceMemory",
+    # L4 代码理解（graphify）
+    "RelationshipType", "CodeNode", "CodeGraph", "ASTExtractor", "LeidenCommunityDetector", "CodeUnderstandingEngine",
+    # L7 自演化引擎（OpenSpace）
+    "GDPValMetrics", "EvolutionType", "EvolutionStatus", "EvolutionCandidate",
+    "SkillHealthRecord", "SkillQualityMonitor", "EvolutionEngine",
 ]
