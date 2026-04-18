@@ -5,7 +5,7 @@
 ## 前置条件
 
 ```bash
-cd /Users/bill/SONUV/BILL_WORKSPACE/05_PROJECTS/AIUCE/repo
+cd $HOME/SONUV/BILL_WORKSPACE/05_PROJECTS/AIUCE/repo
 
 # 首次使用：创建虚拟环境
 python3 -m venv .venv

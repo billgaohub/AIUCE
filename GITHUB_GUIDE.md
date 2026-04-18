@@ -38,7 +38,7 @@
 
 5. **在终端运行**
    ```bash
-   cd /Users/bill/Downloads/Qclaw_Dropzone/eleven_layer_ai
+   cd $HOME/Downloads/Qclaw_Dropzone/eleven_layer_ai
    git push -u origin main
    ```
 

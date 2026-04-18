@@ -3,7 +3,7 @@
 ## 一键启动
 
 ```bash
-cd /Users/bill/SONUV/BILL_WORKSPACE/05_PROJECTS/AIUCE/repo
+cd $HOME/SONUV/BILL_WORKSPACE/05_PROJECTS/AIUCE/repo
 
 # 方式1: 虚拟环境启动（推荐）
 source .venv/bin/activate && python3 api.py

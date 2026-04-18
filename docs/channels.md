@@ -29,7 +29,7 @@ ChannelAdapter.send_message() → 用户回复
 **配置**：
 ```bash
 export FEISHU_APP_ID=cli_xxxxxxxxxxxxxxxx
-export FEISHU_APP_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# SECRET=<removed for security>
 export FEISHU_VERIFICATION_TOKEN=xxxxxxxxxxxxxxxx
 ```
 
