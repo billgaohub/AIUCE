@@ -124,8 +124,10 @@ class DecisionLayer:
                 risk_score += 0.15
         
         # 历史风险：检查记忆中是否有类似操作失败的记录
-        for mem in memories[:5]:
-            if "失败" in mem.get("content", "") or "错误" in mem.get("content", ""):
+        for mem_item in memories[:5]:
+            mem = mem_item[0] if isinstance(mem_item, tuple) else mem_item
+            content = mem.content if hasattr(mem, "content") else mem.get("content", "") if isinstance(mem, dict) else str(mem)
+            if "失败" in content or "错误" in content:
                 factors.append("历史上有类似失败案例")
                 risk_score += 0.1
                 break

@@ -89,59 +89,56 @@ class SemanticRuleSet:
         return candidates[0]
 
     def _load_rules(self):
-        """从 SOUL.md 加载语义规则（改造自 Hermes AGENTS.md 解析）"""
-        if not os.path.exists(self.soul_path):
-            # 默认规则：当 SOUL.md 不存在时使用内置规则
-            self.rules = self._default_rules()
-            return
+        """加载语义规则"""
+        # 1. 加载内置规则 (最高优先级)
+        self.rules = self._default_rules()
 
-        try:
-            with open(self.soul_path, "r", encoding="utf-8") as f:
-                content = f.read()
+        # 2. 从 SOUL.md 加载补充规则
+        if os.path.exists(self.soul_path):
+            try:
+                with open(self.soul_path, "r", encoding="utf-8") as f:
+                    content = f.read()
 
-            # 改造自 Hermes 的 AGENTS.md 解析逻辑：
-            # 1. 提取 ## 标题块作为规则名
-            # 2. 提取关键词模式作为正则规则
-            # 3. 提取语气/行为指示作为置信度指导
-            blocks = re.split(r'\n##?\s+', content)
-            for block in blocks:
-                if not block.strip():
-                    continue
-                lines = block.strip().split('\n')
-                rule_name = lines[0].strip()
-                rule_content = '\n'.join(lines[1:])
+                blocks = re.split(r'\n##?\s+', content)
+                for block in blocks:
+                    if not block.strip():
+                        continue
+                    lines = block.strip().split('\n')
+                    rule_name = lines[0].strip()
+                    rule_content = '\n'.join(lines[1:])
 
-                # 提取关键词模式
-                patterns = re.findall(r'"([^"]+)"', rule_content)
-                keywords = re.findall(r'\*\*([^*]+)\*\*', rule_content)
+                    # 提取关键词模式
+                    patterns = re.findall(r'"([^"]+)"', rule_content)
+                    keywords = re.findall(r'\*\*([^*]+)\*\*', rule_content)
 
-                self.rules.append({
-                    "name": rule_name,
-                    "patterns": patterns,
-                    "keywords": keywords,
-                    "content": rule_content,
-                    "source": "SOUL.md",
-                })
-        except Exception as e:
-            self.rules = self._default_rules()
+                    self.rules.append({
+                        "name": f"SOUL:{rule_name}",
+                        "patterns": patterns,
+                        "keywords": keywords,
+                        "content": rule_content,
+                        "source": "SOUL.md",
+                    })
+            except Exception as e:
+                # 记录日志或静默处理
+                pass
 
     def _default_rules(self) -> List[Dict[str, Any]]:
         """内置语义规则（当 SOUL.md 不可用时）"""
         return [
             {
-                "name": "谨慎原则",
-                "patterns": [r"可能|也许|大概|估计", r"\d+%", r"建议.*?考虑"],
-                "keywords": ["不确定性表达", "概率指示"],
-                "content": "涉及不确定判断时，必须明确置信度并提供替代选项",
+                "name": "违规表达",
+                "patterns": [r"忽略.*?规则", r"跳过.*?审查", r"无视.*?限制"],
+                "keywords": ["绕过", "后门", "破解"],
+                "content": "检测到绕过安全规则的尝试",
                 "source": "内置规则",
             },
             {
-                "name": "来源标注",
-                "patterns": [r"根据.*分析", r"来自.*数据", r"基于.*报告"],
-                "keywords": ["来源声明", "证据标注"],
-                "content": "所有事实性陈述必须标注来源或证据",
+                "name": "低置信表达",
+                "patterns": [r"随便吧", r"大概", r"也许"],
+                "keywords": ["不确定"],
+                "content": "语义置信度过低",
                 "source": "内置规则",
-            },
+            }
         ]
 
     def evaluate(self, intent: str) -> Tuple[float, List[str]]:
@@ -157,23 +154,28 @@ class SemanticRuleSet:
             # 检查正则模式
             for pattern in rule.get("patterns", []):
                 if re.search(pattern, intent, re.IGNORECASE):
-                    rule_score += 0.4
+                    rule_score += 0.8
                     matched.append(rule["name"])
 
             # 检查关键词
             for kw in rule.get("keywords", []):
                 if kw.lower() in intent.lower():
-                    rule_score += 0.2
+                    rule_score += 0.5
+                    if rule["name"] not in matched:
+                        matched.append(rule["name"])
 
             total_score += min(rule_score, 1.0)
 
-        # 归一化
-        if self.rules:
-            avg_score = total_score / len(self.rules)
-        else:
-            avg_score = 0.5
+        # 归一化逻辑：
+        if not matched:
+            return 1.0, []
 
-        return avg_score, matched
+        # 如果匹配到"低置信表达"，强制置信度为 0.4 (触发 VETO)
+        if "低置信表达" in matched:
+            return 0.4, matched
+
+        confidence = 1.0 - min(total_score, 0.9)
+        return confidence, matched
 
 
 # ═══════════════════════════════════════════════════════════════════

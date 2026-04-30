@@ -136,7 +136,7 @@ class TestConstitution(unittest.TestCase):
 
     def test_initialization(self):
         """Test constitution initializes"""
-        self.assertIsNotNone(self.constitution._clauses)
+        self.assertIsNotNone(self.constitution.list_clauses())
 
     def test_constitutional_check(self):
         """Test constitutional check"""

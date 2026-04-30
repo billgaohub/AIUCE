@@ -114,6 +114,36 @@ class FeishuAdapter(ChannelAdapter):
         return sign == signature
 
     def _decrypt(self, encrypt: str) -> str:
-        """AES 解密（预留）"""
-        # TODO: 实现 AES-CBC 解密
-        return encrypt
+        """AES 解密"""
+        if not self.encrypt_key:
+            return encrypt
+
+        try:
+            from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+            from cryptography.hazmat.backends import default_backend
+            import base64
+
+            # 密钥处理：SHA256 后取 32 字节
+            key_hash = hashlib.sha256(self.encrypt_key.encode("utf-8")).digest()
+            
+            # 解码 base64
+            decode_data = base64.b64decode(encrypt)
+            
+            # IV 在前 16 字节
+            iv = decode_data[:16]
+            cipher_text = decode_data[16:]
+            
+            # AES-CBC 解密
+            cipher = Cipher(algorithms.AES(key_hash), modes.CBC(iv), backend=default_backend())
+            decryptor = cipher.decryptor()
+            decrypted_data = decryptor.update(cipher_text) + decryptor.finalize()
+            
+            # 移除 PKCS7 填充
+            padding_len = decrypted_data[-1]
+            if padding_len < 1 or padding_len > 16:
+                return decrypted_data.decode("utf-8")
+                
+            return decrypted_data[:-padding_len].decode("utf-8")
+        except Exception as e:
+            print(f"  [Feishu] ❌ 解密失败: {str(e)}")
+            return encrypt

@@ -286,10 +286,13 @@ class InterfaceLayer:
         
         # 上下文（记忆）
         if context:
-            context_text = "\n".join([
-                f"- {ctx.get('content', '')}" 
-                for ctx in context[:5]
-            ])
+            ctx_strings = []
+            for ctx_item in context[:5]:
+                ctx = ctx_item[0] if isinstance(ctx_item, tuple) else ctx_item
+                content = ctx.content if hasattr(ctx, 'content') else ctx.get('content', '') if isinstance(ctx, dict) else str(ctx)
+                if content:
+                    ctx_strings.append(f"- {content}")
+            context_text = "\n".join(ctx_strings)
             if context_text:
                 messages.append({
                     "role": "user",

@@ -245,7 +245,15 @@ class SoftGateway:
         self.config = config or {}
         self.clauses: Dict[str, ConstitutionClause] = {}
         self._load_soft_rules()
-        self._semantic_analyzer = None  # 可注入 Hermes
+        
+        # 集成 Hermes 语义网关
+        try:
+            from .l0_semantic_gateway import SemanticGateway
+            self._semantic_analyzer = SemanticGateway(
+                soul_path=self.config.get("soul_path")
+            )
+        except ImportError:
+            self._semantic_analyzer = None
     
     def _load_soft_rules(self):
         """加载软规则"""
@@ -354,14 +362,27 @@ class SoftGateway:
         context: Optional[Dict[str, Any]] = None
     ) -> VetoResult:
         """
-        深度语义检查（使用注入的分析器）
-        
-        预留接口，可集成 Hermes-agent
+        深度语义检查（集成 Hermes-agent）
         """
-        # TODO: 集成 Hermes-agent
-        # 1. 分析意图
-        # 2. 检查 AGENTS.md 规则
-        # 3. 返回审查结果
+        if not self._semantic_analyzer:
+            return VetoResult(passed=True, gate_type=GateType.SOFT)
+
+        # 执行语义审查
+        try:
+            audit_result = self._semantic_analyzer.audit(text, context)
+
+            if not audit_result.passed:
+                return VetoResult(
+                    passed=False,
+                    vetoed=audit_result.confidence.value == "veto",
+                    gate_type=GateType.SOFT,
+                    clause_id="SEMANTIC-VETO",
+                    reason=audit_result.reason,
+                    timestamp=audit_result.timestamp
+                )
+        except Exception as e:
+            print(f"  [L0 软网关] ⚠️ 语义分析异常: {str(e)}")
+
         return VetoResult(passed=True, gate_type=GateType.SOFT)
 
 

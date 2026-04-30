@@ -270,7 +270,7 @@ class ElevenLayerSystem:
 
             # ── L4: 记忆层 - 检索史料 ───────────────────────────────
             with Timer("L4 记忆"):
-                relevant_memories = self.memory.retrieve(user_input, perception_data)
+                relevant_memories = self.memory.retrieve(user_input)
                 result["layers_involved"].append("L4")
 
                 # 异步发送记忆结果
@@ -446,7 +446,7 @@ class ElevenLayerSystem:
             "version": self.version,
             "build_date": self.build_date,
             "layers": {
-                "L0_constitution": len(self.constitution._clauses),
+                "L0_constitution": len(self.constitution.list_clauses()),
                 "L1_identity": self.identity.profile.name,
                 "L2_perception": len(self.perception.data_sources),
                 "L3_reasoning": len(self.reasoning.active_models),

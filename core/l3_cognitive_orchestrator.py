@@ -352,7 +352,7 @@ class CognitiveOrchestrator:
         # ── 阶段二：输入控制（ingest）──────────────────────────
         ingest = CognitiveControl.ingest_control(intent, context)
         if not ingest.get("allowed", False):
-            raise PermissionError(f"L3 规划被 ingest 拒绝: {ingest}")
+            raise PermissionError(f"L3 规划被 ingest 拒绝 (denied): {ingest}")
 
         # ── 阶段三：上下文快照（snapshot）───────────────────────
         snapshot = CognitiveControl.snapshot_control(
