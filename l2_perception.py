@@ -6,11 +6,77 @@ Reality Perception - 现实对账
 1. 读取现实数据（睡眠、财务、健康等）
 2. 只说真话，不许粉饰
 3. 以"犯颜直谏"的姿态对账现实
+
+Phase 2 增强：Provider 抽象层，支持多数据源
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass
 from datetime import datetime
+from abc import ABC, abstractmethod
+
+
+class DataProvider(ABC):
+    """数据源抽象基类（Phase 2 Provider 抽象）"""
+    
+    @abstractmethod
+    def read(self) -> Dict[str, Any]:
+        """读取数据"""
+        pass
+    
+    @abstractmethod
+    def is_available(self) -> bool:
+        """检查数据源是否可用"""
+        pass
+
+
+class MockHealthProvider(DataProvider):
+    """模拟健康数据提供者"""
+    
+    def read(self) -> Dict[str, Any]:
+        return {
+            "sleep_hours": 6.5,
+            "sleep_quality": "一般",
+            "steps": 8200,
+            "heart_rate": 72,
+            "weight": 70.5,
+            "anomalies": [
+                {"metric": "sleep", "expected": "7-8小时", "actual": "6.5小时", "severity": 1}
+            ]
+        }
+    
+    def is_available(self) -> bool:
+        return True
+
+
+class MockFinanceProvider(DataProvider):
+    """模拟财务数据提供者"""
+    
+    def read(self) -> Dict[str, Any]:
+        return {
+            "balance": 12345.67,
+            "income_this_month": 25000,
+            "expense_this_month": 18500,
+            "anomalies": []
+        }
+    
+    def is_available(self) -> bool:
+        return True
+
+
+class MockWeatherProvider(DataProvider):
+    """模拟天气数据提供者"""
+    
+    def read(self) -> Dict[str, Any]:
+        return {
+            "temp": 22,
+            "condition": "多云",
+            "humidity": 65,
+            "pm25": 45
+        }
+    
+    def is_available(self) -> bool:
+        return True
 
 
 @dataclass
@@ -38,6 +104,18 @@ class PerceptionLayer:
         self.config = config or {}
         self.data_sources = self._init_data_sources()
         self.last_observation = None
+        self._providers: Dict[str, DataProvider] = {}
+        self._register_providers()
+    
+    def _register_providers(self):
+        """注册数据源 Provider（Phase 2）"""
+        self._providers["health"] = MockHealthProvider()
+        self._providers["finance"] = MockFinanceProvider()
+        self._providers["weather"] = MockWeatherProvider()
+    
+    def register_provider(self, name: str, provider: DataProvider):
+        """注册自定义数据源 Provider"""
+        self._providers[name] = provider
         
     def _init_data_sources(self) -> Dict[str, Dict]:
         """初始化数据源配置"""
@@ -126,27 +204,18 @@ class PerceptionLayer:
         return intents
 
     def _read_health_data(self) -> Dict[str, Any]:
-        """读取健康数据（模拟）"""
-        # 实际项目中，这里会调用 Apple Health / Fitbit / 自定义 API
-        return {
-            "sleep_hours": 6.5,
-            "sleep_quality": "一般",
-            "steps": 8200,
-            "heart_rate": 72,
-            "weight": 70.5,
-            "anomalies": [
-                {"metric": "sleep", "expected": "7-8小时", "actual": "6.5小时", "severity": 1}
-            ]
-        }
+        """读取健康数据（通过 Provider 抽象）"""
+        provider = self._providers.get("health")
+        if provider and provider.is_available():
+            return provider.read()
+        return {"error": "健康数据源不可用", "anomalies": []}
 
     def _read_finance_data(self) -> Dict[str, Any]:
-        """读取财务数据（模拟）"""
-        return {
-            "balance": 12345.67,
-            "income_this_month": 25000,
-            "expense_this_month": 18500,
-            "anomalies": []
-        }
+        """读取财务数据（通过 Provider 抽象）"""
+        provider = self._providers.get("finance")
+        if provider and provider.is_available():
+            return provider.read()
+        return {"error": "财务数据源不可用", "anomalies": []}
 
     def _read_time_data(self) -> Dict[str, Any]:
         """读取时间数据"""
@@ -159,13 +228,11 @@ class PerceptionLayer:
         }
 
     def _read_weather_data(self) -> Dict[str, Any]:
-        """读取天气数据（模拟）"""
-        return {
-            "temp": 22,
-            "condition": "多云",
-            "humidity": 65,
-            "pm25": 45
-        }
+        """读取天气数据（通过 Provider 抽象）"""
+        provider = self._providers.get("weather")
+        if provider and provider.is_available():
+            return provider.read()
+        return {"error": "天气数据源不可用", "anomalies": []}
 
     def _build_raw_context(self, observations: List) -> str:
         """构建原始上下文字符串"""

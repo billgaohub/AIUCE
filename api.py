@@ -107,13 +107,17 @@ app = FastAPI(
     ]
 )
 
-# CORS 配置
+# CORS 配置（Phase 3 安全加固）
+_cors_origins = os.environ.get("AIUCE_CORS_ORIGINS", "").split(",")
+if _cors_origins == [""]:
+    _cors_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("AIUCE_CORS_ORIGINS", "*").split(","),
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["*"],
+    allow_headers=["*", "X-API-Key"],
 )
 
 
@@ -381,15 +385,18 @@ def get_channel_manager():
 
 
 @app.post("/webhook/feishu")
-async def feishu_webhook(request: Request):
-    """飞书 Webhook 接收"""
+async def feishu_webhook(
+    request: Request,
+    _: str = Depends(check_rate_limit),
+    api_key: str = Depends(check_api_key)
+):
+    """飞书 Webhook 接收（Phase 3 安全加固：添加认证）"""
     body = await request.json()
     from core.channels import ChannelType
     manager = get_channel_manager()
     
     results = await manager.handle_message(ChannelType.FEISHU, body)
     
-    # 如果有处理结果，通过飞书发送响应
     if results:
         chat_id = body.get("event", {}).get("chat_id", "")
         if chat_id:
@@ -400,8 +407,12 @@ async def feishu_webhook(request: Request):
 
 
 @app.post("/webhook/telegram")
-async def telegram_webhook(request: Request):
-    """Telegram Webhook 接收"""
+async def telegram_webhook(
+    request: Request,
+    _: str = Depends(check_rate_limit),
+    api_key: str = Depends(check_api_key)
+):
+    """Telegram Webhook 接收（Phase 3 安全加固：添加认证）"""
     body = await request.json()
     from core.channels.base import ChannelType
     manager = get_channel_manager()

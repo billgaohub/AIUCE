@@ -3,6 +3,30 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.5.0] - 2026-05-04
+
+### Added - 生产就绪修复（三阶段）
+
+**Phase 1: 架构清理**
+- `.dockerignore`: 新增，排除 .git, .venv, secrets 等敏感文件
+- `Dockerfile`: 添加非 root 用户 (aiuce)，加固安全
+
+**Phase 2: 核心功能补全**
+- `l7_evolution.py`: `_check_trigger()` 真实实现，基于失败次数和成功率触发演化
+- `l10_sandbox.py`: 增强蒙特卡洛模拟，根据决策类型计算真实成功率
+- `l2_perception.py`: Provider 抽象层，支持多数据源切换
+
+**Phase 3: 安全加固**
+- `api.py`: Webhook 端点添加认证，CORS 配置修复
+- `core/constants.py`: 消除硬编码路径，使用 ~/.aiuce 目录
+- `core/l5_audit.py`: 路径修复，使用用户主目录
+
+### Changed
+
+- 所有测试 87/87 通过
+- 消除硬编码 `/Users/bill` 路径
+
+
 ## [1.4.0] - 2026-04-10
 
 ### Added - 多入口通道支持

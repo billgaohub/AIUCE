@@ -23,6 +23,7 @@ try:
     from .core.constants import (
         Layer, LAYER_OFFICIALS, MsgType, RiskLevel, PATHS
     )
+    from .core.neural_bus import NeuralBus, EventType, Event
     from .utils import (
         gen_id, assess_risk, get_risk_level, Timer,
         detect_intent, contains_sensitive, format_layer_chain,
@@ -34,12 +35,13 @@ except ImportError:
     from core.constants import (
         Layer, LAYER_OFFICIALS, MsgType, RiskLevel, PATHS
     )
+    from core.neural_bus import NeuralBus, EventType, Event
     from utils import (
         gen_id, assess_risk, get_risk_level, Timer,
         detect_intent, contains_sensitive, format_layer_chain,
     )
 
-# Layers
+# Layers - Phase 1 架构清理：统一从根目录导入（core 提供增强功能）
 try:
     from .l1_identity import IdentityLayer
     from .l2_perception import PerceptionLayer

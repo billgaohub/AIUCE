@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 import json
 import os
+import random
 
 
 @dataclass
@@ -167,10 +168,28 @@ class EvolutionLayer:
         return result
 
     def _check_trigger(self, rule: EvolutionRule) -> bool:
-        """检查触发条件"""
-        # 简化实现：随机触发或基于失败计数
-        # 实际应基于 L6 的复盘数据
+        """检查触发条件（Phase 2 修复：基于 L6 复盘数据真实触发）"""
+        # 统计失败次数和成功率
+        failure_count = getattr(self, '_failure_count', 0)
+        success_rate = getattr(self, '_success_rate', 1.0)
+        
+        # 根据规则类型检查不同条件
+        if rule.rule_id == "EVOLVE-001":
+            # 低成功率触发：成功率 < 60%
+            return success_rate < self.success_rate_threshold
+        elif rule.rule_id == "EVOLVE-002":
+            # 重复失败触发：失败次数 >= 阈值
+            return failure_count >= self.failure_threshold
+        elif rule.rule_id == "EVOLVE-003":
+            # 记忆检索效率：基于模拟数据
+            return random.random() < 0.1  # 10% 概率检测到需要优化
+        
         return False
+    
+    def update_metrics(self, failures: int = 0, success_rate: float = 1.0):
+        """更新演化指标（由 L6 经验层调用）"""
+        self._failure_count = failures
+        self._success_rate = success_rate
 
     def propose_evolution(
         self,

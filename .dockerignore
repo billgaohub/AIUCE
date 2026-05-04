@@ -1,0 +1,63 @@
+# AIUCE .dockerignore
+# 排除不需要复制到 Docker 镜像的文件
+
+# Git
+.git
+.gitignore
+.github
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv/
+ENV/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Development files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Project specific
+archive/
+aiuce-rust-test/
+aiuce-sandbox-git/
+aiuce-sandbox/
+temp_scripts/
+reports/
+PR/
+
+# Secrets (never include)
+.env
+.env.*
+*.pem
+*.key
+secrets/

@@ -178,18 +178,43 @@ class SandboxLayer:
         return result
 
     def _simulate_single_run(self, scenario: SimulationScenario) -> Dict[str, Any]:
-        """单次模拟运行"""
-        # 蒙特卡洛模拟：加入随机波动
+        """单次模拟运行（Phase 2 增强：真实决策路径模拟）"""
+        action = scenario.variables.get("action", "")
         base_score = scenario.variables.get("confidence", 0.5)
+        risk_factors = scenario.variables.get("risk_factors", [])
         
-        # 加入随机波动
-        variance = random.gauss(0, self.variance_rate)
-        score = max(0, min(1, base_score + variance))
+        # 根据决策类型计算基础成功率
+        action_type_scores = {
+            "read": 0.95,
+            "write": 0.85,
+            "delete": 0.60,
+            "send": 0.75,
+            "execute": 0.50,
+            "payment": 0.40,
+        }
         
-        # 检查约束是否被违反
+        # 匹配决策类型
+        action_type = "read"
+        for atype in action_type_scores:
+            if atype in action.lower():
+                action_type = atype
+                break
+        
+        type_score = action_type_scores.get(action_type, 0.70)
+        
+        # 风险因子影响
+        risk_penalty = len(risk_factors) * 0.05
+        
+        # 随机波动（蒙特卡洛）
+        variance = random.gauss(0, self.variance_rate * 0.5)
+        score = max(0, min(1, type_score - risk_penalty + variance))
+        
+        # 约束检查
         constraint_violations = 0
         for constraint in scenario.constraints:
-            if random.random() < 0.1:  # 10% 概率违反约束
+            # 高风险约束更容易被违反
+            violation_prob = 0.1 if "不可恢复" not in constraint else 0.2
+            if random.random() < violation_prob:
                 constraint_violations += 1
         
         success = score >= 0.5 and constraint_violations == 0
@@ -197,6 +222,7 @@ class SandboxLayer:
         return {
             "score": score,
             "success": success,
+            "action_type": action_type,
             "constraint_violations": constraint_violations,
             "timestamp": datetime.now().isoformat()
         }

@@ -153,9 +153,10 @@ class DecisionAudit:
     """
 
     def __init__(self, storage_path: str = None):
-        self.storage_path = storage_path or "/Users/bill/AIUCE/repo/data/audit_chain.json"
+        # Phase 3 修复：使用 ~/.aiuce 目录
+        self.storage_path = storage_path or os.path.expanduser("~/.aiuce/audit_chain.json")
         self.entries: List[AuditEntry] = []
-        self.chain_head: str = ""  # 最新条目的哈希
+        self.chain_head: str = ""
         self._ensure_storage()
         self._load_chain()
 

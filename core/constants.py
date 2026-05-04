@@ -174,15 +174,16 @@ SYSTEM_PROMPT_TEMPLATE = """你是一个基于十一层架构的AI助手。
 
 # ─── File Paths ──────────────────────────────────────────────────
 import os
-DROPZONE = "/Users/bill/Downloads/Qclaw_Dropzone"
-WORKSPACE = os.path.expanduser("~/.qclaw/workspace")
-ELEVEN_LAYER_ROOT = os.path.join(DROPZONE, "eleven_layer_ai")
+# Phase 3 修复：消除硬编码路径，使用 ~/.aiuce 目录
+DROPZONE = os.path.expanduser("~/AIUCE_Dropzone")
+WORKSPACE = os.path.expanduser("~/.aiuce/workspace")
+ELEVEN_LAYER_ROOT = os.path.expanduser("~/.aiuce")
 
 PATHS = {
     "memory_store":     os.path.join(ELEVEN_LAYER_ROOT, "memory_store.json"),
     "experience_store": os.path.join(ELEVEN_LAYER_ROOT, "experience_store.json"),
     "evolution_store":  os.path.join(ELEVEN_LAYER_ROOT, "evolution_store.json"),
-    "audit_log":        os.path.join(ELEVEN_LAYER_ROOT, "audit_log.json"),
+    "audit_log":        os.path.join(ELEVEN_LAYER_ROOT, "audit_chain.json"),
     "config":           os.path.join(ELEVEN_LAYER_ROOT, "config.json"),
     "constitution":     os.path.join(ELEVEN_LAYER_ROOT, "constitution.json"),
 }
