@@ -6,6 +6,9 @@ Identity & Boundary Guard
 1. 维护 AI 人设定义
 2. 防止越权操作
 3. 界定代理执行红线
+
+增强版: core/l1_identity_brain.py (IdentityBrain + MECEWing 知识库)
+本文件为 system.py 集成版本，接口稳定。
 """
 
 from typing import Dict, Any, Optional, List

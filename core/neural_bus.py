@@ -49,6 +49,18 @@ import queue
 import hashlib
 from collections import defaultdict
 import uuid
+from dataclasses import asdict, is_dataclass
+
+
+def _default_json_serializer(obj):
+    """自定义 JSON 序列化：支持 dataclass 和常见类型"""
+    if is_dataclass(obj) and not isinstance(obj, type):
+        return asdict(obj)
+    if hasattr(obj, 'to_dict'):
+        return obj.to_dict()
+    if hasattr(obj, '__dict__'):
+        return obj.__dict__
+    return str(obj)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -136,7 +148,7 @@ class Event:
     
     def compute_hash(self) -> str:
         """计算事件哈希（用于审计）"""
-        data = f"{self.id}{self.type.value}{self.source}{json.dumps(self.payload, sort_keys=True)}"
+        data = f"{self.id}{self.type.value}{self.source}{json.dumps(self.payload, sort_keys=True, default=_default_json_serializer)}"
         return hashlib.sha256(data.encode()).hexdigest()[:16]
 
 
@@ -206,8 +218,12 @@ class EventStore:
             conn.commit()
     
     def append(self, event: Event) -> str:
-        """追加事件"""
+        """追加事件（自动处理非 JSON 可序列化对象）"""
         event_hash = event.compute_hash()
+        
+        # 使用自定义序列化器处理 dataclass 等
+        def _safe_json_dumps(obj, **kwargs):
+            return json.dumps(obj, default=_default_json_serializer, **kwargs)
         
         with sqlite3.connect(self.storage_path) as conn:
             conn.execute(
@@ -219,12 +235,12 @@ class EventStore:
                     event.type.value,
                     event.source,
                     event.target,
-                    json.dumps(event.payload, ensure_ascii=False),
+                    _safe_json_dumps(event.payload, ensure_ascii=False),
                     event.timestamp,
                     event.correlation_id,
                     event.causation_id,
                     event_hash,
-                    json.dumps(event.metadata, ensure_ascii=False)
+                    _safe_json_dumps(event.metadata, ensure_ascii=False)
                 )
             )
             conn.commit()

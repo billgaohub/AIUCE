@@ -7,7 +7,8 @@ Reality Perception - 现实对账
 2. 只说真话，不许粉饰
 3. 以"犯颜直谏"的姿态对账现实
 
-Phase 2 增强：Provider 抽象层，支持多数据源
+增强版: core/l2_reality_sensor.py (RealitySensor + 多模态感知)
+本文件为 system.py 集成版本，接口稳定，含 Provider 抽象层。
 """
 
 from typing import Dict, Any, List, Optional, Callable

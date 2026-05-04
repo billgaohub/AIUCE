@@ -7,7 +7,9 @@ Semantic Memory Index
 2. 把所有碎片化事实编纂入库
 3. 让过往一切皆成"史料"可供调取
 
-类型注解完善版本
+增强版: core/l4_palace_memory.py (PalaceMemory + 宫殿记忆)
+      core/l4_code_understanding.py (代码理解 + Leiden 社区检测)
+本文件为 system.py 集成版本，接口稳定。
 """
 
 from typing import Dict, Any, List, Optional, Tuple, Union, Protocol, runtime_checkable

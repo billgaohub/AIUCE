@@ -6,6 +6,9 @@ External Interface - 算力外交
 1. 连接 OpenAI/本地 Qwen 等异星算力
 2. 负责协议握手
 3. 凿空西域，打通本地算力与云端异星算力的"丝绸之路"
+
+增强版: core/l8_interface.py (InterfaceLayer + 多模型路由)
+本文件为 system.py 集成版本，接口稳定。
 """
 
 from typing import Dict, Any, List, Optional, Callable

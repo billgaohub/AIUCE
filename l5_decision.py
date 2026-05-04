@@ -5,7 +5,10 @@ Decision Adjudication - 最高司法审计
 职责：
 1. 决策必须存证，拒绝黑箱逻辑
 2. 有据可查，有案可审
-3. 每一声"开镰"都是决策，必须留下不可篡改的审计日志
+3. 每一声"开铡"都是决策，必须留下不可篡改的审计日志
+
+增强版: core/l5_audit.py (DecisionAudit + 三域评分)
+本文件为 system.py 集成版本，接口稳定。
 """
 
 from typing import Dict, Any, List, Optional

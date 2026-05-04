@@ -6,6 +6,9 @@ Experience Review - 复盘扫描
 1. 扫描偏离度
 2. 将成功惯性硬化为准则
 3. 结硬寨，打呆仗 - 通过每日复盘将偶然成功硬化为系统必然
+
+增强版: core/l6_experience.py (ExperienceEngine + 经验日志)
+本文件为 system.py 集成版本，接口稳定。
 """
 
 from typing import Dict, Any, List, Optional

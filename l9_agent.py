@@ -8,11 +8,9 @@ Agent Execution Layer - 跨设备执行
 3. 多多益善，多体协同
 4. 不问过程，只问结果
 
-安全加固：
-- 命令白名单
-- 参数清理
-- 超时限制
-- 执行日志
+增强版: core/l9_agent.py (AgentLayer + 锦衣卫令牌系统)
+      core/l9_tool_harness.py (ToolHarnessRegistry + IPIPQ 分类器)
+本文件为 system.py 集成版本，接口稳定。
 """
 
 from typing import Dict, Any, List, Optional, Callable, Set

@@ -6,6 +6,9 @@ Multi-Path Reasoning Engine
 1. 多路径推演决策后果
 2. 运筹帷幄之中，决胜千里之外
 3. 利用心智模型执行多路径 Consequence 坍缩
+
+增强版: core/l3_reasoning.py (ReasoningEngine + CognitiveOrchestrator)
+本文件为 system.py 集成版本，接口稳定。
 """
 
 from typing import Dict, Any, List, Optional
