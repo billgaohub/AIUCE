@@ -200,7 +200,7 @@ class MemoryLayer:
         source: str = "internal"
     ) -> str:
         """
-        存储新记忆
+        存储新记忆（自动去重）
         
         Args:
             content: 记忆内容
@@ -210,8 +210,14 @@ class MemoryLayer:
             source: 来源 (internal/external)
             
         Returns:
-            记忆ID
+            记忆ID（已存在则返回 None）
         """
+        import hashlib
+
+        content_hash = hashlib.md5(content.encode()).hexdigest()
+        if hasattr(self, '_content_hashes') and content_hash in self._content_hashes:
+            return None
+
         import uuid
         
         if isinstance(category, MemoryCategory):
@@ -220,6 +226,13 @@ class MemoryLayer:
         entry_id = str(uuid.uuid4())[:8]
         now = datetime.now().isoformat()
         
+        # 初始化内容哈希集合（首次存储时）
+        if not hasattr(self, '_content_hashes'):
+            self._content_hashes = set()
+
+        if content_hash in self._content_hashes:
+            return None
+
         # 生成向量嵌入（如果有提供者）
         embedding = []
         if self._embedding_provider:
@@ -240,6 +253,7 @@ class MemoryLayer:
         )
         
         self.memories[entry_id] = entry
+        self._content_hashes.add(content_hash)
         
         # 更新索引
         for tag in entry.tags:

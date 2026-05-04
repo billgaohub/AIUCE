@@ -208,14 +208,8 @@ class ElevenLayerSystem:
         pass
 
     def _on_execution_result(self, msg: Message):
-        """L9 执行结果到达 → L6 复盘"""
-        payload = msg.payload
-        self.experience.review(
-            payload.get("user_input", ""),
-            payload.get("decision", {}),
-            payload.get("response", ""),
-            payload.get("result", {})
-        )
+        """L9 执行结果到达 — 复盘已由 run() 中 L6 阶段统一处理，此处仅记录日志"""
+        pass
 
     # ── NeuralBus Handlers ──────────────────────────────────────
 
@@ -249,27 +243,30 @@ class ElevenLayerSystem:
         10. L6 经验层 - 事后复盘
         11. L7 演化层 - 检查是否需要变法
         """
-        with Timer("总处理时间") as total_timer:
-            result = {
-                "status": "pending",
-                "layers_involved": [],
-                "response": None,
-                "audit_id": None,
-                "vetoed": False,
-                "veto_reason": None,
-                "veto_layer": None,
-                "actions": {},
-                "evolution": {},
-                "timing": {},
-                "intent": detect_intent(user_input),
-            }
+        result = {
+            "status": "pending",
+            "layers_involved": [],
+            "response": None,
+            "audit_id": None,
+            "vetoed": False,
+            "veto_reason": None,
+            "veto_layer": None,
+            "actions": {},
+            "evolution": {},
+            "timing": {},
+            "reasoning": {},  # 推理相关数据独立存储，与耗时统计分离
+            "intent": detect_intent(user_input),
+        }
 
-            # ── L2: 感知层 - 现实对账 ──────────────────────────────
-            with Timer("L2 感知"):
-                self.neural_bus.begin_transaction()
-                
-                perception_data = self.perception.observe(user_input)
-                result["layers_involved"].append("L2")
+        # 启动 NeuralBus 事务，确保所有执行路径都能正确关闭事务
+        self.neural_bus.begin_transaction()
+        try:
+            with Timer("总处理时间") as total_timer:
+                # ── L2: 感知层 - 现实对账 ──────────────────────────────
+                with Timer("L2 感知"):
+                    # 事务已在方法开头统一启动，此处无需重复调用
+                    perception_data = self.perception.observe(user_input)
+                    result["layers_involved"].append("L2")
 
                 # 双总线: MessageBus + NeuralBus
                 self.message_bus.send(
@@ -288,7 +285,7 @@ class ElevenLayerSystem:
             # ── L0: 意志层 - 合宪性检查 ────────────────────────────
             with Timer("L0 意志"):
                 if not self.constitution.is_constitutional(user_input, perception_data):
-                    self.audit.log_veto("L0", user_input, "违反宪法条款")
+                    # 由 _handle_veto 统一记录审计日志，避免重复调用
                     return self._handle_veto(result, "L0", "违反宪法条款")
 
             # ── L1: 身份层 - 人设边界 ───────────────────────────────
@@ -329,7 +326,9 @@ class ElevenLayerSystem:
                     user_input, perception_data, relevant_memories
                 )
                 result["layers_involved"].append("L3")
-                result["timing"]["reasoning"] = reasoning_result.get("confidence", 0)
+                # 推理相关数据存入独立字段，与耗时统计分离
+                result["reasoning"]["confidence"] = reasoning_result.get("confidence", 0)
+                result["reasoning"]["paths"] = reasoning_result.get("paths", [])
 
             # ── L5: 决策层 - 存证落槌 ──────────────────────────────
             with Timer("L5 决策"):
@@ -364,7 +363,6 @@ class ElevenLayerSystem:
                 if not decision.get("approved"):
                     result["status"] = "decision_rejected"
                     result["response"] = decision.get("rejection_message", "决策未通过")
-                    self.neural_bus.end_transaction()
                     return result
 
             # ── L10: 沙盒层 - 影子模拟（高风险决策时启用）──────────
@@ -446,15 +444,12 @@ class ElevenLayerSystem:
                 else str(model_response)
             )
 
-        result["timing"]["total_ms"] = total_timer.elapsed_ms()
-        
-        # 结束 NeuralBus 事务
-        try:
+            result["timing"]["total_ms"] = total_timer.elapsed_ms()
+
+            return result
+        finally:
+            # 确保所有执行路径（包括提前返回）都能正确关闭事务
             self.neural_bus.end_transaction()
-        except:
-            pass
-    
-        return result
 
     def _handle_veto(
         self,
