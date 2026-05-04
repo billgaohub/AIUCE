@@ -266,6 +266,12 @@ class ElevenLayerSystem:
                 with Timer("L2 感知"):
                     # 事务已在方法开头统一启动，此处无需重复调用
                     perception_data = self.perception.observe(user_input)
+                    
+                    # Phase 1: 推送上下文到 IntentFlow 并检测潜在需求
+                    self.perception.push_context(user_input, source="user_input")
+                    latent_needs = self.perception.detect_latent_needs()
+                    perception_data["latent_needs"] = latent_needs
+                    
                     result["layers_involved"].append("L2")
 
                 # 双总线: MessageBus + NeuralBus
@@ -322,13 +328,22 @@ class ElevenLayerSystem:
 
             # ── L3: 推理层 - 多路径推演 ─────────────────────────────
             with Timer("L3 推理"):
-                reasoning_result = self.reasoning.reason(
-                    user_input, perception_data, relevant_memories
-                )
+                # Phase 1: 使用流式推理（集成 IntentFlow latent needs）
+                if hasattr(self.reasoning, "streaming_reason"):
+                    reasoning_result = self.reasoning.streaming_reason(
+                        user_input, perception_data, relevant_memories
+                    )
+                else:
+                    reasoning_result = self.reasoning.reason(
+                        user_input, perception_data, relevant_memories
+                    )
                 result["layers_involved"].append("L3")
                 # 推理相关数据存入独立字段，与耗时统计分离
                 result["reasoning"]["confidence"] = reasoning_result.get("confidence", 0)
                 result["reasoning"]["paths"] = reasoning_result.get("paths", [])
+                # Phase 1: 传递 proactive context
+                if reasoning_result.get("proactive_context"):
+                    result["reasoning"]["proactive_context"] = reasoning_result["proactive_context"]
 
             # ── L5: 决策层 - 存证落槌 ──────────────────────────────
             with Timer("L5 决策"):

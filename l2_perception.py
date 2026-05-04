@@ -9,12 +9,21 @@ Reality Perception - 现实对账
 
 增强版: core/l2_reality_sensor.py (RealitySensor + 多模态感知)
 本文件为 system.py 集成版本，接口稳定，含 Provider 抽象层。
+
+Phase 1 增强：
+- 集成 IntentFlow 流式意图检测
+- detect_latent_needs() 方法
 """
 
 from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass
 from datetime import datetime
 from abc import ABC, abstractmethod
+
+try:
+    from .core.intent_flow import IntentFlow, IntentSignal, IntentType
+except ImportError:
+    from core.intent_flow import IntentFlow, IntentSignal, IntentType
 
 
 class DataProvider(ABC):
@@ -106,6 +115,7 @@ class PerceptionLayer:
         self.data_sources = self._init_data_sources()
         self.last_observation = None
         self._providers: Dict[str, DataProvider] = {}
+        self._intent_flow = IntentFlow(config.get("intent_flow", {}))
         self._register_providers()
     
     def _register_providers(self):
@@ -257,3 +267,39 @@ class PerceptionLayer:
             "time": self._read_time_data(),
             "weather": self._read_weather_data()
         }
+
+    # ─────────────────────────────────────────────────────────
+    # Phase 1 增强：流式意图检测 (IntentFlow)
+    # ─────────────────────────────────────────────────────────
+
+    def push_context(self, content: str, source: str = "user_input", metadata: Dict[str, Any] = None):
+        """
+        推送上下文到 IntentFlow
+        
+        Args:
+            content: 上下文内容
+            source: 来源 (user_input, system_response, external_event)
+            metadata: 额外元数据
+        """
+        self._intent_flow.push_context(content, source, metadata)
+
+    def detect_latent_needs(self) -> List[Dict[str, Any]]:
+        """
+        检测潜在需求（基于 PASK 的 DD 模块）
+        
+        从当前上下文流中检测用户潜在需求，
+        区分显性需求和隐性需求。
+        
+        Returns:
+            检测到的意图信号列表
+        """
+        signals = self._intent_flow.detect_intents()
+        return [s.to_dict() for s in signals]
+
+    def get_recent_intents(self, last_n: int = 5) -> List[Dict[str, Any]]:
+        """获取最近的意图信号"""
+        return self._intent_flow.get_recent_intents(last_n)
+
+    def get_context_window(self, last_n: int = 10) -> List[str]:
+        """获取最近 N 条上下文"""
+        return self._intent_flow.get_context_window(last_n)

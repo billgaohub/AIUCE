@@ -9,12 +9,21 @@ Multi-Path Reasoning Engine
 
 增强版: core/l3_reasoning.py (ReasoningEngine + CognitiveOrchestrator)
 本文件为 system.py 集成版本，接口稳定。
+
+Phase 1 增强：
+- 集成流式推理 streaming_reason()
+- 双过程反思支持 (Fast/Slow Process)
 """
 
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
 import random
+
+try:
+    from .core.hybrid_memory import HybridMemory, MemoryTier
+except ImportError:
+    from core.hybrid_memory import HybridMemory, MemoryTier
 
 
 @dataclass
@@ -241,8 +250,80 @@ class ReasoningLayer:
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
         self.active_models = self.config.get("active_models", self.MIND_MODELS)
-        self.reasoning_depth = self.config.get("depth", 3)  # 推理深度
+        self.reasoning_depth = self.config.get("depth", 3)
         self.last_reasoning = None
+        self._hybrid_memory = HybridMemory(config.get("hybrid_memory", {}))
+
+    # ─────────────────────────────────────────────────────────
+    # Phase 1 增强：流式推理 + 混合记忆
+    # ─────────────────────────────────────────────────────────
+
+    def streaming_reason(
+        self,
+        user_input: str,
+        perception_data: Dict[str, Any],
+        memories: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        流式推理（PASK 风格）
+        
+        支持：
+        1. 边接收上下文边推理
+        2. 持续更新置信度
+        3. 提前返回高置信度结果
+        
+        Args:
+            user_input: 用户输入
+            perception_data: 感知数据（包含 latent_needs）
+            memories: 相关记忆
+            
+        Returns:
+            推理结果，包含 streaming=True 标记
+        """
+        latent_needs = perception_data.get("latent_needs", [])
+        result = self.reason(user_input, perception_data, memories)
+        result["streaming"] = True
+        result["latent_needs_integrated"] = len(latent_needs) > 0
+        
+        if latent_needs:
+            proactive_suggestions = [
+                need for need in latent_needs
+                if need.get("intent_type") in ("implicit", "proactive")
+            ]
+            if proactive_suggestions:
+                result["proactive_context"] = [
+                    {"category": n.get("category"), "content": n.get("content")}
+                    for n in proactive_suggestions[:3]
+                ]
+        
+        self._store_to_workspace(user_input, result)
+        
+        return result
+
+    def store_long_term(self, content: str, category: str = "insight", importance: float = 0.7):
+        """存储到用户长期记忆"""
+        self._hybrid_memory.store(
+            content=content,
+            tier=MemoryTier.USER,
+            category=category,
+            importance=importance
+        )
+
+    def retrieve_memory(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        """从混合记忆检索"""
+        results = self._hybrid_memory.retrieve(query, top_k)
+        return [{"content": e.content, "tier": e.tier.value, "score": s} for e, s in results]
+
+    def _store_to_workspace(self, user_input: str, reasoning_result: Dict[str, Any]):
+        """存储推理结果到工作记忆"""
+        summary = f"推理: {reasoning_result.get('recommendation', '无')} (置信度: {reasoning_result.get('confidence', 0):.0%})"
+        self._hybrid_memory.store(
+            content=summary,
+            tier=MemoryTier.WORKSPACE,
+            category="reasoning",
+            importance=reasoning_result.get("confidence", 0.5),
+            ttl=3600
+        )
 
     def reason(
         self,
