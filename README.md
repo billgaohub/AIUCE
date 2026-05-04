@@ -85,19 +85,25 @@ AIUCE implements a unique governance structure inspired by ancient Chinese burea
 |-------|------|---------|-----------|--------|--------|
 | **L0** | Will | Qin Shi Huang | `l0_sovereignty_gateway.py` | agent-sovereignty-rules | ✅ |
 | **L0** | Semantic | Wei Zheng | `l0_semantic_gateway.py` | hermes-agent | ✅ |
+| **L0** | Sovereignty | — | `core/sovereignty.py` | PASK Phase 3 | ✅ |
 | **L1** | Identity | Zhuge Liang | `l1_identity_brain.py` | gbrain | ✅ |
 | **L2** | Perception | Zhang Liang | `l2_document_ingestor.py` | markitdown | ✅ |
+| **L2** | IntentFlow | — | `core/intent_flow.py` | PASK DD | ✅ |
 | **L3** | Reasoning | Zhang Liang | `l3_cognitive_orchestrator.py` | teonu-worldmodel + deer-flow | ✅ |
 | **L4** | Memory | Sima Qian | `l4_palace_memory.py` | mempalace | ✅ |
-| **L4** | Memory | Sima Qian | `l4_code_understanding.py` | graphify | ✅ |
+| **L4** | HybridMemory | — | `core/hybrid_memory.py` | PASK MM | ✅ |
+| **L4** | CodeUnderstanding | Sima Qian | `l4_code_understanding.py` | graphify | ✅ |
 | **L5** | Decision | Bao Zheng | `l5_audit.py` | ai-governance-framework | ✅ |
 | **L6** | Experience | Zeng Guofan | `l6_experience.py` | — | ✅ |
+| **L6** | DualProcess | — | `core/dual_process.py` | PASK Phase 2 | ✅ |
 | **L7** | Evolution | Shang Yang | `l7_evolution_engine.py` | OpenSpace | ✅ |
 | **L8** | Interface | Zhang Qian | `l8_interface.py` | — | ✅ |
 | **L9** | Agent | Han Xin | `l9_tool_harness.py` | CLI-Anything + ipipq | ✅ |
+| **L9** | AssetCustody | — | `core/asset_custody.py` | PASK Phase 3 | ✅ |
 | **L10** | Sandbox | Zhuangzi | `l10_sandbox.py` | — | ✅ |
+| **L10** | WorldModel | — | `core/world_model.py` | PASK Phase 1 | ✅ |
 
-**Progress**: 10/10 core layer modules implemented (**L6 Experience layer completed**)
+**Progress**: 10/10 core layer modules implemented + 6 PASK upgrade modules (**L6 Experience layer completed**)
 
 ---
 
@@ -123,6 +129,45 @@ Based on the principle of **"Concept Transfer > Code Reuse"**, we extracted core
 Full reports:
 - [docs/reports/aiuce-billgaohub-fusion-20260414.md](docs/reports/aiuce-billgaohub-fusion-20260414.md) — Phase 1
 - [docs/reports/aiuce-billgaohub-fusion-phase2-3-20260414.md](docs/reports/aiuce-billgaohub-fusion-phase2-3-20260414.md) — Phase 2–3
+
+---
+
+## 🚀 PASK + World Model Upgrade (2026)
+
+Inspired by recent research, AIUCE has been upgraded with **proactive agent capabilities** and **world model simulation**.
+
+### Research Basis
+
+| Paper | arXiv | Key Contribution |
+|-------|-------|-----------------|
+| **PASK** | [2604.08000](https://arxiv.org/abs/2604.08000) | DD-MM-PAS proactive agent paradigm |
+| **World Models as Intermediary** | [2602.00785](https://arxiv.org/abs/2602.00785) | T^/R^/G^ world model components |
+| **LeWorldModel** | [2603.19312](https://arxiv.org/abs/2603.19312) | Stable end-to-end JEPA + Surprise detection |
+
+### New Core Modules
+
+| Module | File | Description |
+|--------|------|-------------|
+| **IntentFlow** | `core/intent_flow.py` | Streaming intent detection, latent needs inference |
+| **HybridMemory** | `core/hybrid_memory.py` | Workspace/User/Global three-tier memory |
+| **WorldModel** | `core/world_model.py` | T^ (dynamics), R^ (reward), G^ (task distribution), Surprise detection |
+| **DualProcess** | `core/dual_process.py` | System 1 (Fast) + System 2 (Slow) reflection |
+| **Sovereignty** | `core/sovereignty.py` | Data localization, transfer audit, privacy boundary |
+| **AssetCustody** | `core/asset_custody.py` | Account abstraction, transaction management |
+
+### Upgrade Highlights
+
+| Layer | Before | After |
+|-------|--------|-------|
+| **L2 Perception** | Passive intent detection (keywords) | **Streaming IntentFlow** - detects latent needs from context |
+| **L3 Reasoning** | Multi-path reasoning (one-shot) | **Streaming reasoning** + HybridMemory integration |
+| **L4 Memory** | Flat semantic index | **Three-tier Hybrid** - Workspace/User/Global |
+| **L6 Experience** | Daily review, pattern recognition | **Dual Process** - System 1 (fast) + System 2 (slow) |
+| **L7 Evolution** | Rule evolution | **L6/L7 linkage** - proposals from deep reflection |
+| **L9 Agent** | Tool execution | **Asset Custody** - account/tranaction abstraction |
+| **L10 Sandbox** | Monte Carlo simulation | **World Model** - T^/R^/G^ + Surprise detection |
+
+Full upgrade plan: [docs/upgrade-pask-worldmodel.md](docs/upgrade-pask-worldmodel.md)
 
 ---
 
