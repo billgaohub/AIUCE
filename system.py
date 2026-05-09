@@ -24,6 +24,8 @@ try:
         Layer, LAYER_OFFICIALS, MsgType, RiskLevel, PATHS
     )
     from .core.neural_bus import NeuralBus, EventType, Event
+    from .core.state_daemon import StateDaemon, EventType as StateEventType
+    from .core.policy_engine import PolicyEngine, Decision as PolicyDecision
     from .utils import (
         gen_id, assess_risk, get_risk_level, Timer,
         detect_intent, contains_sensitive, format_layer_chain,
@@ -36,6 +38,8 @@ except ImportError:
         Layer, LAYER_OFFICIALS, MsgType, RiskLevel, PATHS
     )
     from core.neural_bus import NeuralBus, EventType, Event
+    from core.state_daemon import StateDaemon, EventType as StateEventType
+    from core.policy_engine import PolicyEngine, Decision as PolicyDecision
     from utils import (
         gen_id, assess_risk, get_risk_level, Timer,
         detect_intent, contains_sensitive, format_layer_chain,
@@ -86,6 +90,8 @@ class ElevenLayerSystem:
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
         self._init_version()
+        self._init_state_daemon()  # ADR-001: 单一事实源
+        self._init_policy_engine()  # ADR-001: 动态授权
         self._init_constitution()
         self._init_layers()
         self._init_message_bus()
@@ -95,12 +101,21 @@ class ElevenLayerSystem:
         print(f"  🏯 AIUCE System v{self.version} 初始化完成")
         print(f"  AI Universe Constitution Evolution")
         print(f"  一票否决权: L0 秦始皇 | 人设边界: L1 诸葛亮")
+        print(f"  StateDaemon: 单一事实源 | PolicyEngine: 动态授权")
         print(f"{'━' * 60}\n")
 
     def _init_version(self):
         """版本信息"""
-        self.version = "1.0.0"
-        self.build_date = "2026-03-20"
+        self.version = "1.1.0"  # ADR-001 改造版本
+        self.build_date = "2026-05-09"
+
+    def _init_state_daemon(self):
+        """ADR-001: 初始化单一事实源"""
+        self.state_daemon = StateDaemon(self.config.get("state_daemon", {}))
+
+    def _init_policy_engine(self):
+        """ADR-001: 初始化动态授权引擎"""
+        self.policy_engine = PolicyEngine(self.config.get("policy_engine", {}), self.state_daemon)
 
     # ── Layer Initialization ──────────────────────────────────────
 
@@ -258,8 +273,13 @@ class ElevenLayerSystem:
             "intent": detect_intent(user_input),
         }
 
-        # 启动 NeuralBus 事务，确保所有执行路径都能正确关闭事务
+        # 启动 NeuralBus 事务
         self.neural_bus.begin_transaction()
+        # ADR-001: 启动 StateDaemon 事务
+        correlation_id = self.state_daemon.begin_transaction()
+        # ADR-001: 发布用户意图事件
+        self.state_daemon.emit_intent(user_id="system", intent=result["intent"], raw_input=user_input, channel="api")
+        
         try:
             with Timer("总处理时间") as total_timer:
                 # ── L2: 感知层 - 现实对账 ──────────────────────────────
@@ -284,6 +304,8 @@ class ElevenLayerSystem:
                     EventType.REALITY_DATA, source="L2", target="L3",
                     payload={"perception": perception_data, "user_input": user_input}
                 )
+                # ADR-001: 发布感知事件
+                self.state_daemon.emit_action(agent_id="L2", action_type="perception", target="reality_sensor", params={"perception": perception_data})
 
                 if perception_data.get("vetoed"):
                     return self._handle_veto(result, "L2", perception_data.get("reason", "现实数据异常"))
@@ -291,15 +313,19 @@ class ElevenLayerSystem:
             # ── L0: 意志层 - 合宪性检查 ────────────────────────────
             with Timer("L0 意志"):
                 if not self.constitution.is_constitutional(user_input, perception_data):
-                    # 由 _handle_veto 统一记录审计日志，避免重复调用
+                    # ADR-001: 发布治理否决事件
+                    self.state_daemon.emit_governance(policy_id="CONSTITUTION_VETO", decision="deny", reason="违反宪法条款", severity="critical")
                     return self._handle_veto(result, "L0", "违反宪法条款")
 
             # ── L1: 身份层 - 人设边界 ───────────────────────────────
             with Timer("L1 身份"):
                 identity_check = self.identity.check_boundary(user_input)
                 result["layers_involved"].append("L1")
+                # ADR-001: 发布身份检查事件
+                self.state_daemon.emit_action(agent_id="L1", action_type="identity_check", params={"result": identity_check})
 
                 if identity_check.get("blocked"):
+                    self.state_daemon.emit_governance(policy_id="IDENTITY_VETO", decision="deny", reason=identity_check.get("reason", "人设边界限制"), severity="warning")
                     return self._handle_veto(result, "L1", identity_check.get("reason", "人设边界限制"))
 
             # ── L4: 记忆层 - 检索史料 ───────────────────────────────
@@ -410,10 +436,20 @@ class ElevenLayerSystem:
 
             # ── L9: 代理层 - 执行操作 ───────────────────────────────
             if decision.get("requires_action"):
+                # ADR-001: PolicyEngine 评估
+                policy_eval = self.policy_engine.evaluate(action_type="agent_action", target=decision.get("action", ""), params=decision)
+                self.state_daemon.emit_governance(policy_id=policy_eval.rule_id, decision=policy_eval.decision.value, reason=policy_eval.reason, severity=policy_eval.risk_level.value)
+                if policy_eval.decision == PolicyDecision.DENY:
+                    self.audit.log_veto("PolicyEngine", user_input, policy_eval.reason)
+                    return self._handle_veto(result, "PolicyEngine", policy_eval.reason)
+                
                 with Timer("L9 执行"):
                     action_result = self.agent.execute(decision, model_response)
                     result["layers_involved"].append("L9")
                     result["actions"] = action_result
+                    
+                    # ADR-001: 发布执行事件
+                    self.state_daemon.emit_action(agent_id="L9", action_type="execution", target=decision.get("action", ""), params={"success": action_result.get("executed", False)})
 
                 self.message_bus.send(
                     source="L9", target="L6",
@@ -460,11 +496,15 @@ class ElevenLayerSystem:
             )
 
             result["timing"]["total_ms"] = total_timer.elapsed_ms()
+            
+            # ADR-001: 记录最终状态
+            self.state_daemon.mutate("session.last_result", {"status": result["status"], "correlation_id": correlation_id, "timestamp": datetime.now().isoformat()})
 
             return result
         finally:
-            # 确保所有执行路径（包括提前返回）都能正确关闭事务
+            # 确保所有执行路径都能正确关闭事务
             self.neural_bus.end_transaction()
+            self.state_daemon.end_transaction()
 
     def _handle_veto(
         self,

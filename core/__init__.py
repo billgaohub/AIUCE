@@ -43,6 +43,19 @@ from .neural_bus import (
     EventStore, EventQueue, NeuralBus,
 )
 
+# ADR-001: 单一事实源状态守护进程
+from .state_daemon import (
+    EventType as StateEventType,
+    StateEvent, StateMutation, StateStore, StateDaemon,
+)
+
+# ADR-001: 动态授权引擎
+from .policy_engine import (
+    RiskLevel as PolicyRiskLevel,
+    Decision as PolicyDecision,
+    PolicyRule, PolicyDecision as PolicyDecisionResult, PolicyEngine,
+)
+
 # 双核演化引擎
 from .evolution import (
     EvolutionMode, EvolutionStatus, EvolutionTrigger,
@@ -199,6 +212,10 @@ __all__ = [
     # 神经总线
     "EventType", "Event", "EventSubscription",
     "EventStore", "EventQueue", "NeuralBus",
+    # ADR-001: StateDaemon
+    "StateEventType", "StateEvent", "StateMutation", "StateStore", "StateDaemon",
+    # ADR-001: PolicyEngine
+    "PolicyRiskLevel", "PolicyDecision", "PolicyRule", "PolicyDecisionResult", "PolicyEngine",
     # 双核演化
     "EvolutionMode", "EvolutionStatus", "EvolutionTrigger",
     "EvolutionPattern", "EvolutionRuleType", "MutationRecordType",
