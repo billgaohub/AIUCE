@@ -5,8 +5,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.14](https://img.shields.io/badge/python-3.14-blue.svg)](https://www.python.org/downloads/)
 [![Tests](https://img.shields.io/badge/tests-33%20passing-44cc44.svg)](#-tests)
-[![Layers](https://img.shields.io/badge/layers-11%20active-44cc44.svg)](#--11-layer-architecture)
+[![Layers](https://img.shields.io/badge/layers-11%20%2B%202%20%20active-44cc44.svg)](#--11-layer-architecture)
 [![Last Commit](https://img.shields.io/github/last-commit/billgaohub/AIUCE/main.svg)](https://github.com/billgaohub/AIUCE/commits/main)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](docs/adr/ADR-001-event-schema.md)
 [![Stars](https://img.shields.io/github/stars/billgaohub/AIUCE.svg?style=social)](https://github.com/billgaohub/AIUCE/stargazers)
 
 > **AIUCE** = **A**I System + **U**niverse + **C**onstitution + **E**volution
@@ -170,8 +171,10 @@ flowchart TB
 | **L9** | AssetCustody | — | `core/asset_custody.py` | Account/transaction abstraction | ✅ |
 | **L10** | Sandbox | Zhuangzi | `l10_sandbox.py` | Monte Carlo / Shadow Universe | ✅ |
 | **L10** | WorldModel | — | `core/world_model.py` | T^ dynamics · R^ reward · G^ task | ✅ |
+| **—** | StateDaemon | — | `core/state_daemon.py` | Single Source of Truth + Event Sourcing | ✅ v1.1 |
+| **—** | PolicyEngine | — | `core/policy_engine.py` | Dynamic Authorization + Command Whitelist | ✅ v1.1 |
 
-> **Progress**: 11/11 core layer modules implemented + 6 PASK upgrade modules (2026)
+> **Progress**: 11/11 core layer modules implemented + 8 modules (2026) — v1.1 ADR-001
 
 ---
 
@@ -237,6 +240,8 @@ graph LR
 | **Multi-Provider Gateway** | L8 | Unified API for OpenAI / Claude / Qwen / DeepSeek / Ollama |
 | **Tool Whitelist** | L9 | Sandboxed tool execution with pattern detection and timeout |
 | **World Model** | L10 | T^ (dynamics) · R^ (reward) · G^ (task distribution) + Surprise detection |
+| **StateDaemon** | — | Single Source of Truth with 4-event schema (ADR-001) |
+| **PolicyEngine** | — | Dynamic authorization with command whitelist evaluation |
 
 ---
 
@@ -373,6 +378,7 @@ Full upgrade plan: [docs/upgrade-pask-worldmodel.md](docs/upgrade-pask-worldmode
 | [integration.md](docs/integration.md) | Open-source integration guide |
 | [channels.md](docs/channels.md) | Multi-channel configuration |
 | [upgrade-pask-worldmodel.md](docs/upgrade-pask-worldmodel.md) | 2026 PASK + World Model upgrade |
+| [ADR-001: Event Schema](docs/adr/ADR-001-event-schema.md) | 4-core-event architecture v1.1 |
 
 ---
 
