@@ -12,7 +12,7 @@ Semantic Gateway — 改造自 Hermes Agent 的 SCAF 机制
 - 合宪性降级：硬网关否决时直接拒绝，不走语义层
 """
 
-from typing import Dict, Any, List, Optional, Callable
+from typing import Dict, Any, List, Optional, Callable, Tuple
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -77,11 +77,12 @@ class SemanticRuleSet:
         self._load_rules()
 
     def _find_soul(self) -> str:
-        """查找 SOUL.md"""
+        """查找 SOUL.md（仅使用可移植路径，避免硬编码本机目录）"""
+        pkg_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         candidates = [
-            "/Users/bill/AIUCE/SOUL.md",
-            "/Users/bill/.qclaw/workspace-agent-5359e824/SOUL.md",
             "./SOUL.md",
+            os.path.join(pkg_root, "SOUL.md"),
+            os.path.expanduser("~/.aiuce/SOUL.md"),
         ]
         for p in candidates:
             if os.path.exists(p):

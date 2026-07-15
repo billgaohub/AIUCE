@@ -39,7 +39,7 @@ echo "  文档: http://localhost:$PORT/docs"
 echo ""
 
 # 启动服务
-python3 api.py &
+python3 -m eleven_layer_ai.api &
 PID=$!
 
 # 等待服务启动

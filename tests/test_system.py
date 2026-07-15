@@ -8,7 +8,7 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from system import ElevenLayerSystem, create_system
+from eleven_layer_ai.system import ElevenLayerSystem, create_system
 
 
 class TestElevenLayerSystem(unittest.TestCase):
@@ -21,7 +21,7 @@ class TestElevenLayerSystem(unittest.TestCase):
     def test_system_initialization(self):
         """Test system initializes correctly"""
         self.assertIsNotNone(self.system)
-        self.assertEqual(self.system.version, "1.0.0")
+        self.assertEqual(self.system.version, "1.1.0")
         self.assertIsNotNone(self.system.constitution)
         self.assertIsNotNone(self.system.identity)
         self.assertIsNotNone(self.system.perception)

@@ -26,9 +26,10 @@ class AuditLog:
 
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
-        self.storage_path = self.config.get("storage_path",
-            "/Users/bill/Downloads/Qclaw_Dropzone/eleven_layer_ai/audit_log.json"
+        default_storage = os.path.join(
+            os.path.expanduser("~"), ".aiuce", "audit_log.json"
         )
+        self.storage_path = self.config.get("storage_path", default_storage)
         self.logs: List[Dict[str, Any]] = []
         self._load_logs()
 

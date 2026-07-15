@@ -6,7 +6,7 @@ Tutorial example for Eleven-Layer AI System
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from system import ElevenLayerSystem as create_system
+from eleven_layer_ai.system import ElevenLayerSystem as create_system
 
 
 def tutorial_basic_usage():

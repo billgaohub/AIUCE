@@ -8,14 +8,14 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="eleven-layer-ai",
-    version="1.0.0",
-    author="Eleven Layer AI Team",
-    author_email="",
-    description="十一层架构 AI 系统 - Eleven-Layer Architecture AI System",
+    version="1.1.0",
+    author="Yingjie Gao",
+    author_email="billgaohub@users.noreply.github.com",
+    description="AIUCE - AI Universe Constitution Evolution System (十一层治理架构)",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/eleven-layer-ai",
-    packages=find_packages(),
+    url="https://github.com/billgaohub/aiuce",
+    packages=find_packages(exclude=("tests", "tests.*")),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",

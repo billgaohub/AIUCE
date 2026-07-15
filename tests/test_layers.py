@@ -7,17 +7,17 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from l1_identity import IdentityLayer
-from l2_perception import PerceptionLayer
-from l3_reasoning import ReasoningLayer
-from l4_memory import MemoryLayer
-from l5_decision import DecisionLayer
-from l6_experience import ExperienceLayer
-from l7_evolution import EvolutionLayer
-from l8_interface import InterfaceLayer
-from l9_agent import AgentLayer
-from l10_sandbox import SandboxLayer
-from core.constitution import Constitution
+from eleven_layer_ai.l1_identity import IdentityLayer
+from eleven_layer_ai.l2_perception import PerceptionLayer
+from eleven_layer_ai.l3_reasoning import ReasoningLayer
+from eleven_layer_ai.l4_memory import MemoryLayer
+from eleven_layer_ai.l5_decision import DecisionLayer
+from eleven_layer_ai.l6_experience import ExperienceLayer
+from eleven_layer_ai.l7_evolution import EvolutionLayer
+from eleven_layer_ai.l8_interface import InterfaceLayer
+from eleven_layer_ai.l9_agent import AgentLayer
+from eleven_layer_ai.l10_sandbox import SandboxLayer
+from eleven_layer_ai.core.constitution import Constitution
 
 
 class TestIdentityLayer(unittest.TestCase):

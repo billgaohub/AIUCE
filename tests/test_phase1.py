@@ -5,11 +5,11 @@ Run: .venv/bin/python3 -m pytest tests/test_phase1.py -v
 import sys, os, tempfile, shutil, unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.l0_sovereignty_gateway import SovereigntyGateway
-from core.l0_semantic_gateway import SemanticGateway, SemanticConfidence
-from core.l3_cognitive_orchestrator import CognitiveOrchestrator
-from core.l5_audit import DecisionAudit, TriDomainScore, AuditEntry
-from core.l9_tool_harness import ToolHarnessRegistry, ToolDomain, ToolSpec
+from eleven_layer_ai.core.l0_sovereignty_gateway import SovereigntyGateway
+from eleven_layer_ai.core.l0_semantic_gateway import SemanticGateway, SemanticConfidence
+from eleven_layer_ai.core.l3_cognitive_orchestrator import CognitiveOrchestrator
+from eleven_layer_ai.core.l5_audit import DecisionAudit, TriDomainScore, AuditEntry
+from eleven_layer_ai.core.l9_tool_harness import ToolHarnessRegistry, ToolDomain, ToolSpec
 
 
 class TestSovereigntyGateway(unittest.TestCase):

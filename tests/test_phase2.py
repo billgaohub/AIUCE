@@ -5,14 +5,14 @@ Run: .venv/bin/python3 -m pytest tests/test_phase2.py -v
 import sys, os, tempfile, shutil, unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.l1_identity_brain import IdentityBrain, BrainEngine, MECEWing
-from core.l2_document_ingestor import DocumentIngestor, DocFormat, FormatDetector, IngestResult
-from core.l4_palace_memory import PalaceMemory, PalaceWing, PalaceEngine
-from core.l4_code_understanding import (
+from eleven_layer_ai.core.l1_identity_brain import IdentityBrain, BrainEngine, MECEWing
+from eleven_layer_ai.core.l2_document_ingestor import DocumentIngestor, DocFormat, FormatDetector, IngestResult
+from eleven_layer_ai.core.l4_palace_memory import PalaceMemory, PalaceWing, PalaceEngine
+from eleven_layer_ai.core.l4_code_understanding import (
     CodeUnderstandingEngine, CodeGraph, CodeNode, ASTExtractor,
     LeidenCommunityDetector, RelationshipType
 )
-from core.l7_evolution_engine import (
+from eleven_layer_ai.core.l7_evolution_engine import (
     EvolutionEngine, EvolutionType, EvolutionStatus, GDPValMetrics,
     SkillQualityMonitor
 )

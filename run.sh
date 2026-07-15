@@ -60,7 +60,7 @@ echo ""
 echo -e "${YELLOW}🚀 启动 API 服务...${NC}"
 echo ""
 
-python3 api.py &
+python3 -m eleven_layer_ai.api &
 PID=$!
 
 # 等待服务启动

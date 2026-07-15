@@ -5,7 +5,7 @@ Run: .venv/bin/python3 -m pytest tests/test_phase3.py -v
 import sys, os, tempfile, shutil, unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.l6_experience import (
+from eleven_layer_ai.core.l6_experience import (
     ExperienceJournal, PatternScanner, HealthMonitor,
     DailyMetrics, DeviationType, DeviationAlert, ReviewEntry
 )

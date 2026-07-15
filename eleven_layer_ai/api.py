@@ -28,7 +28,7 @@ import traceback
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from system import ElevenLayerSystem, create_system
+from .system import ElevenLayerSystem, create_system
 
 # ═══════════════════════════════════════════════════════════════
 # 安全配置
