@@ -1,0 +1,11 @@
+[tool.mypy]
+# 类型检查配置（CI 中以 continue-on-error 运行，属信息性关卡）
+ignore_missing_imports = true
+warn_unused_ignores = false
+exclude = [
+    "tests",
+    "examples",
+    "build",
+    "dist",
+    ".venv",
+]
