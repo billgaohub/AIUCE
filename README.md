@@ -1,6 +1,9 @@
 > ⚠️ **Deprecated — legacy AIUCE family.** This repo is being consolidated into **SONUV** / **AIOBR** / a unified history archive (2026). No new work is accepted. Current status: **[aiuce.com](https://aiuce.com)**. _Marked 2026-07-15._
 >
 > _本仓库属旧 AIUCE 体系，正整合进 SONUV / AIOBR / 统一历史归档，不再接受新改动；最新状态见 aiuce.com。_
+> **Disposition**: **Retain → legacy core (will be archived)**
+> **处置**：保留为历史核心，将在步骤 5 改名 `aiuce-legacy-governance-architecture` 后归档；不再作为新产品代码仓。
+
 
 # AIUCE
 
