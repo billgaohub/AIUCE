@@ -36,6 +36,8 @@ from .memory_sal import (
     KnowledgeNode, MemoryQuery, MemorySearchResult,
     WorkingMemory, SemanticDisk, MemoryLayer as MemoryLayerSAL,
 )
+# 统一记忆数据契约（I1/I2 收敛基座）
+from .memory_schema import MemoryEntryBase, MemoryBackend
 
 # 神经总线
 from .neural_bus import (
@@ -209,6 +211,8 @@ __all__ = [
     "EmbeddingProvider", "MemoryEntrySAL", "KnowledgeNode",
     "MemoryQuery", "MemorySearchResult",
     "WorkingMemory", "SemanticDisk", "MemoryLayerSAL",
+    # 统一记忆数据契约
+    "MemoryEntryBase", "MemoryBackend",
     # 神经总线
     "EventType", "Event", "EventSubscription",
     "EventStore", "EventQueue", "NeuralBus",

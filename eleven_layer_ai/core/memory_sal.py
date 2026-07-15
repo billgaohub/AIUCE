@@ -44,6 +44,8 @@ import queue
 import hashlib
 from collections import defaultdict
 
+from .memory_schema import MemoryEntryBase
+
 
 # ═══════════════════════════════════════════════════════════════
 # 类型定义
@@ -83,23 +85,14 @@ class EmbeddingProvider(Protocol):
 
 
 @dataclass
-class MemoryEntry:
-    """记忆条目（L1）"""
-    id: str
-    content: str
-    timestamp: str
-    category: str
+class MemoryEntry(MemoryEntryBase):
+    """记忆条目（L1）—— 继承统一基座 MemoryEntryBase（评审 I1/I2 收敛）"""
     tier: MemoryTier = MemoryTier.L1_WORKING
-    tags: List[str] = field(default_factory=list)
-    importance: float = 0.5
-    access_count: int = 0
-    last_accessed: str = ""
     embedding: List[float] = field(default_factory=list)
-    source: str = "internal"
     archive_status: ArchiveStatus = ArchiveStatus.ACTIVE
     parent_id: Optional[str] = None  # DAG 父节点
     children_ids: List[str] = field(default_factory=list)  # DAG 子节点
-    
+
     def is_expired(self, max_age_days: int = 365) -> bool:
         """检查记忆是否过期"""
         try:
@@ -108,7 +101,7 @@ class MemoryEntry:
             return age > max_age_days
         except ValueError:
             return False
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典"""
         return {
@@ -213,7 +206,6 @@ class WorkingMemory:
                     tags TEXT,
                     parent_id TEXT,
                     children_ids TEXT,
-                    embedding BLOB,
                     metadata TEXT
                 )
             """)
@@ -346,8 +338,16 @@ class WorkingMemory:
         except Exception as e:
             print(f"  [L4 L1工作记忆] 持久化失败: {e}")
     
-    def retrieve(self, query: str, top_k: int = 5) -> List[Tuple[MemoryEntry, float]]:
-        """FTS5 + LIKE 双轨检索（兼容中文）"""
+    def retrieve(
+        self, query: str, top_k: int = 5, min_score: float = 0.0
+    ) -> List[Tuple[MemoryEntry, float]]:
+        """
+        FTS5 + LIKE 双轨检索（兼容中文）
+
+        Args:
+            min_score: 相关性阈值（已做 [0,1] 归一化后比对）。低于该值的命中被截断，
+                       提升召回精度、避免语义无关的长文被返回（见评审 I3）。
+        """
         with self._lock:
             results: List[Tuple[MemoryEntry, float]] = []
             query_lower = query.lower()
@@ -438,8 +438,14 @@ class WorkingMemory:
                         seen_ids.add(entry.id)
                         results.append((entry, score))
             
-            results.sort(key=lambda x: x[1], reverse=True)
-            return results[:top_k]
+            # 分数归一化到 [0,1] + 阈值过滤（I3）
+            normalized = [
+                (entry, max(0.0, min(1.0, score)))
+                for entry, score in results
+                if max(0.0, min(1.0, score)) >= min_score
+            ]
+            normalized.sort(key=lambda x: x[1], reverse=True)
+            return normalized[:top_k]
     
     def get_dag_path(self, entry_id: str) -> List[str]:
         """获取 DAG 路径（从根到该节点）"""
@@ -571,15 +577,19 @@ class SemanticDisk:
             self._archive_worker.start()
     
     def _archive_worker_loop(self):
-        """归档工作线程"""
-        while True:
-            try:
-                entry = self.archive_queue.get(timeout=1)
+        """归档工作线程（批处理落盘，I4）"""
+        try:
+            while True:
+                try:
+                    entry = self.archive_queue.get(timeout=1)
+                except queue.Empty:
+                    break
                 self._process_archive(entry)
-            except queue.Empty:
-                break
-            except Exception as e:
-                print(f"  [L4 L2语义盘] 归档错误: {e}")
+        except Exception as e:
+            print(f"  [L4 L2语义盘] 归档错误: {e}")
+        finally:
+            # 队列耗尽后一次性落盘，替代每条归档全量 JSON 重写
+            self._save_to_disk()
     
     def _process_archive(self, entry: MemoryEntry):
         """处理单条归档"""
@@ -620,14 +630,13 @@ class SemanticDisk:
                     self.nodes[source_id].relationships.append(
                         (f"mentioned_with_{entry.category}", target_id)
                     )
-        
-        self._save_to_disk()
     
     def _extract_entities(self, text: str) -> List[Tuple[str, str]]:
         """
-        实体提取（简化版）
-        
-        实际应使用 NER 模型
+        实体提取（占位实现 / placeholder，见评审 S2）
+
+        仅用中文姓氏正则 + 简单时间/金额规则做粗提取，NER 基本不可用。
+        生产应替换为真实 NER（如 spaCy / 大模型实体抽取）后再用于知识图谱构建。
         """
         entities = []
         

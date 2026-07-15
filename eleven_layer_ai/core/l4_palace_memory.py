@@ -476,19 +476,17 @@ class PalaceEngine:
 
 class PalaceMemory:
     """
-    L4 记忆宫殿 façade（整合 mempalace + l1_identity_brain）
+    L4 记忆宫殿 façade（当前仅整合 mempalace 的 PalaceEngine）
 
-    融合逻辑：
-    - mempalace PalaceEngine → Raw Verbatim 记忆存储
-    - l1_identity_brain BrainEngine → Entity-centric 知识索引
-    - L3 CognitiveOrchestrator → 元认知检索策略选择
-    - L5 DecisionAudit → 决策类记忆的 wing 迁移
+    现状（如实描述，见评审 S4）：
+    - 实际只委托 PalaceEngine 做 Raw Verbatim + 哈希链存储与检索。
+    - 早期规划中提及的 l1_identity_brain / BrainEngine / 元认知检索 / Dream cycle
+      等实体索引与记忆巩固**尚未接入**（`self.brain` 恒为 None），属于占位契约，
+      待后续实现；届时由 l1_identity_brain 提供 brain 实例。
 
-    工作流：
-    1. 用户对话 → Palace.store()（Raw Verbatim）
-    2. 同时 Brain.update()（实体提取 + 链接）
-    3. Brain.consult() → Palace.retrieve()（检索）
-    4. Dream cycle → Memory consolidation
+    工作流（已实现部分）：
+    1. 用户对话 → Palace.store()（Raw Verbatim + 哈希链）
+    2. Palace.retrieve() → 确定性关键词召回（可经 UnifiedMemoryLayer 做语义重排）
     """
 
     def __init__(
@@ -497,8 +495,8 @@ class PalaceMemory:
         brain_path: str = "~/.aiuce/brain",
     ):
         self.palace = PalaceEngine(palace_path=palace_path)
-        # 延迟导入避免循环依赖
-        self.brain = None  # 由 l1_identity_brain 提供
+        # 占位：l1_identity_brain 实体索引尚未接入（brain_path 预留，待实现）
+        self.brain = None
 
     def remember(
         self,

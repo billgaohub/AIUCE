@@ -11,6 +11,7 @@ from eleven_layer_ai.l1_identity import IdentityLayer
 from eleven_layer_ai.l2_perception import PerceptionLayer
 from eleven_layer_ai.l3_reasoning import ReasoningLayer
 from eleven_layer_ai.l4_memory import MemoryLayer
+from eleven_layer_ai.core.unified_memory import UnifiedMemoryLayer
 from eleven_layer_ai.l5_decision import DecisionLayer
 from eleven_layer_ai.l6_experience import ExperienceLayer
 from eleven_layer_ai.l7_evolution import EvolutionLayer
@@ -94,7 +95,11 @@ class TestMemoryLayer(unittest.TestCase):
     """Test L4 Memory Layer"""
 
     def setUp(self):
-        self.layer = MemoryLayer({})
+        import tempfile
+        import os
+        d = tempfile.mkdtemp()
+        self._tmp_path = os.path.join(d, "memory_store.json")
+        self.layer = MemoryLayer({"storage_path": self._tmp_path})
 
     def test_initialization(self):
         """Test layer initializes"""
@@ -115,6 +120,119 @@ class TestMemoryLayer(unittest.TestCase):
         self.layer.store(content="重要的测试", category="test", importance=0.9)
         results = self.layer.retrieve("测试")
         self.assertIsInstance(results, list)
+
+    def test_retrieve_ranks_matching_entry_first(self):
+        """语义+关键词混合检索：含查询子串的条目应排在最前"""
+        self.layer.store(content="人工智能治理需要多层约束", category="fact", importance=0.9)
+        self.layer.store(content="今天天气晴朗适合散步", category="fact", importance=0.9)
+        results = self.layer.retrieve("人工智能治理", top_k=1)
+        self.assertEqual(len(results), 1)
+        self.assertIn("人工智能治理", results[0][0].content)
+        # 分数应为正数（关键词/语义信号至少有一个命中）
+        self.assertGreater(results[0][1], 0.0)
+
+    def test_dedup_within_session(self):
+        """同一进程内重复内容只写入一次"""
+        self.layer.store(content="重复内容", category="fact", importance=0.8)
+        dup_id = self.layer.store(content="重复内容", category="fact", importance=0.8)
+        self.assertIsNone(dup_id)
+        self.assertEqual(len(self.layer.memories), 1)
+
+    def test_dedup_across_restart(self):
+        """回归测试：去重集合必须在加载时重建，否则重启后无法识别重复"""
+        import tempfile
+        import os
+        d = tempfile.mkdtemp()
+        path = os.path.join(d, "memory_store.json")
+
+        m1 = MemoryLayer({"storage_path": path})
+        m1.store(content="AIUCE 是治理框架", category="fact", importance=0.8)
+        m1.store(content="AIUCE 是治理框架", category="fact", importance=0.8)
+        self.assertEqual(len(m1.memories), 1, "会话内去重应生效")
+
+        # 模拟进程重启：从同一磁盘文件重新加载
+        m2 = MemoryLayer({"storage_path": path})
+        dup_id = m2.store(content="AIUCE 是治理框架", category="fact", importance=0.8)
+        self.assertIsNone(dup_id, "跨重启后重复内容不应再次写入")
+        self.assertEqual(len(m2.memories), 1, "跨重启去重应生效")
+
+    def test_semantic_provider_wired(self):
+        """若注入 embedding_provider，检索应走 provider 向量而非崩溃"""
+        import tempfile
+        import os
+        d = tempfile.mkdtemp()
+        path = os.path.join(d, "memory_store.json")
+
+        class FakeProvider:
+            def embed(self, text: str) -> list:
+                # 把文本映射为固定维度向量（首字符决定方向），便于断言
+                vec = [0.0] * 8
+                vec[hash(text) % 8] = 1.0
+                return vec
+
+        layer = MemoryLayer({"storage_path": path}, embedding_provider=FakeProvider())
+        layer.store(content="治理框架", category="fact", importance=0.9)
+        # 触发检索路径，确认 provider 向量路径不抛异常
+        results = layer.retrieve("治理框架", top_k=1)
+        self.assertEqual(len(results), 1)
+
+
+class TestUnifiedMemoryLayer(unittest.TestCase):
+    """收敛后的官方记忆层：Palace 内核 + SAL 后端 + Hybrid tier 路由 + C1 语义"""
+
+    def setUp(self):
+        import tempfile
+        import os
+        self._tmp = tempfile.mkdtemp()
+        self.path = os.path.join(self._tmp, "memory_store.json")
+        self.layer = UnifiedMemoryLayer({"storage_path": self.path})
+
+    def test_store_writes_to_palace_and_serving(self):
+        """store 应同时写入 Palace 真相源与 SAL 检索索引"""
+        self.layer.store(content="AIUCE 是治理框架", category="fact", importance=0.9)
+        # SAL 检索索引可见
+        self.assertEqual(len(self.layer.serving.entries), 1)
+        # Palace 真相源可见（Raw Verbatim）
+        stats = self.layer.palace.stats()
+        self.assertGreater(stats["total_records"], 0)
+
+    def test_retrieve_ranks_matching_entry_first(self):
+        """混合检索：含查询子串的条目应排在最前"""
+        self.layer.store(content="人工智能治理需要多层约束", category="fact", importance=0.9)
+        self.layer.store(content="今天天气晴朗适合散步", category="fact", importance=0.9)
+        results = self.layer.retrieve("人工智能治理", top_k=1)
+        self.assertEqual(len(results), 1)
+        self.assertIn("人工智能治理", results[0][0].content)
+        self.assertGreater(results[0][1], 0.0)
+
+    def test_tier_routing_maps_to_palace_wing(self):
+        """tier 应映射到 Palace 的空间索引 wing（user -> PEOPLE）"""
+        self.layer.store(content="用户偏好深色模式", category="preference",
+                         importance=0.7, tier="user")
+        stats = self.layer.palace.stats()
+        by_wing = stats.get("by_wing", {})
+        self.assertIn("people", by_wing)
+        self.assertGreater(by_wing["people"], 0)
+
+    def test_dedup_across_restart(self):
+        """跨重启去重：统一层也必须在加载时重建 _content_hashes"""
+        m1 = UnifiedMemoryLayer({"storage_path": self.path})
+        m1.store(content="AIUCE 是治理框架", category="fact", importance=0.8)
+        m1.store(content="AIUCE 是治理框架", category="fact", importance=0.8)
+        self.assertEqual(len(m1.memories), 1, "会话内去重应生效")
+
+        m2 = UnifiedMemoryLayer({"storage_path": self.path})
+        dup_id = m2.store(content="AIUCE 是治理框架", category="fact", importance=0.8)
+        self.assertIsNone(dup_id, "跨重启后重复内容不应再次写入")
+        self.assertEqual(len(m2.memories), 1, "跨重启去重应生效")
+
+    def test_stats_shape(self):
+        """stats 应返回 dict 且含检索/真相源计数"""
+        self.layer.store(content="测试条目", category="fact", importance=0.5)
+        st = self.layer.stats()
+        self.assertIsInstance(st, dict)
+        self.assertIn("total_entries", st)
+        self.assertIn("palace", st)
 
 
 class TestDecisionLayer(unittest.TestCase):

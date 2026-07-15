@@ -30,6 +30,13 @@ from enum import Enum
 import json
 import hashlib
 import os
+import time
+import threading
+
+from .memory_schema import MemoryEntryBase
+
+# 落盘节流窗口（秒）：窗口内的多次写入合并为一次全量 JSON 重写（I4）
+FLUSH_INTERVAL = 1.0
 
 
 class MemoryTier(Enum):
@@ -40,20 +47,11 @@ class MemoryTier(Enum):
 
 
 @dataclass
-class MemoryEntry:
-    """记忆条目"""
-    id: str
-    content: str
-    tier: MemoryTier
-    category: str
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    importance: float = 0.5
-    access_count: int = 0
-    last_accessed: str = ""
-    tags: List[str] = field(default_factory=list)
-    source: str = "internal"
+class MemoryEntry(MemoryEntryBase):
+    """记忆条目 —— 继承统一基座 MemoryEntryBase（评审 I1/I2 收敛）"""
+    tier: MemoryTier = MemoryTier.WORKSPACE
     ttl: Optional[int] = None          # 存活时间（秒），None 表示永久
-    
+
     def is_expired(self) -> bool:
         if self.ttl is None:
             return False
@@ -63,7 +61,7 @@ class MemoryEntry:
             return age_seconds > self.ttl
         except ValueError:
             return False
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
@@ -98,76 +96,90 @@ class WorkspaceMemory:
         self.config = config or {}
         self.entries: Dict[str, MemoryEntry] = {}
         self._content_hashes: set = set()
-    
-    def store(self, content: str, category: str = "temp", importance: float = 0.5, 
+        self._lock = threading.RLock()  # I5：统一线程安全契约（单写者/锁内完成读改写）
+
+    def store(self, content: str, category: str = "temp", importance: float = 0.5,
               tags: List[str] = None, ttl: int = None) -> Optional[str]:
-        content_hash = hashlib.md5(content.encode()).hexdigest()
-        if content_hash in self._content_hashes:
-            return None
-        
-        entry_id = f"ws_{content_hash[:8]}"
-        entry = MemoryEntry(
-            id=entry_id,
-            content=content,
-            tier=MemoryTier.WORKSPACE,
-            category=category,
-            importance=importance,
-            tags=tags or [],
-            ttl=ttl or self.DEFAULT_TTL
-        )
-        
-        self.entries[entry_id] = entry
-        self._content_hashes.add(content_hash)
-        
-        if len(self.entries) > self.MAX_ENTRIES:
-            self._evict_oldest()
-        
-        return entry_id
-    
-    def retrieve(self, query: str, top_k: int = 5) -> List[Tuple[MemoryEntry, float]]:
-        self._cleanup_expired()
-        results = []
-        query_lower = query.lower()
-        
-        for entry in self.entries.values():
-            score = 0.0
-            if query_lower in entry.content.lower():
-                score = 0.8
-            elif any(query_lower in tag.lower() for tag in entry.tags):
-                score = 0.6
-            elif any(w in entry.content.lower() for w in query_lower.split() if len(w) > 1):
-                score = 0.3
-            
-            if score > 0:
-                entry.access_count += 1
-                entry.last_accessed = datetime.now().isoformat()
-                results.append((entry, score))
-        
-        results.sort(key=lambda x: x[1], reverse=True)
-        return results[:top_k]
-    
+        with self._lock:
+            content_hash = hashlib.md5(content.encode()).hexdigest()
+            if content_hash in self._content_hashes:
+                return None
+
+            entry_id = f"ws_{content_hash[:8]}"
+            entry = MemoryEntry(
+                id=entry_id,
+                content=content,
+                tier=MemoryTier.WORKSPACE,
+                category=category,
+                importance=importance,
+                tags=tags or [],
+                ttl=ttl or self.DEFAULT_TTL
+            )
+
+            self.entries[entry_id] = entry
+            self._content_hashes.add(content_hash)
+
+            if len(self.entries) > self.MAX_ENTRIES:
+                self._evict_to_capacity()
+
+            return entry_id
+
+    def retrieve(self, query: str, top_k: int = 5, min_score: float = 0.0) -> List[Tuple[MemoryEntry, float]]:
+        with self._lock:
+            self._cleanup_expired()
+            results = []
+            query_lower = query.lower()
+
+            for entry in self.entries.values():
+                score = 0.0
+                if query_lower in entry.content.lower():
+                    score = 0.8
+                elif any(query_lower in tag.lower() for tag in entry.tags):
+                    score = 0.6
+                elif any(w in entry.content.lower() for w in query_lower.split() if len(w) > 1):
+                    score = 0.3
+
+                if score > 0:
+                    entry.access_count += 1
+                    entry.last_accessed = datetime.now().isoformat()
+                    results.append((entry, score))
+
+            # 分数归一化到 [0,1] + 阈值过滤（I3）
+            normalized = [
+                (entry, max(0.0, min(1.0, score)))
+                for entry, score in results
+                if max(0.0, min(1.0, score)) >= min_score
+            ]
+            normalized.sort(key=lambda x: x[1], reverse=True)
+            return normalized[:top_k]
+
     def get_context_window(self, last_n: int = 10) -> List[str]:
-        sorted_entries = sorted(self.entries.values(), key=lambda e: e.timestamp)
-        return [e.content for e in sorted_entries[-last_n:]]
-    
+        with self._lock:
+            sorted_entries = sorted(self.entries.values(), key=lambda e: e.timestamp)
+            return [e.content for e in sorted_entries[-last_n:]]
+
     def _cleanup_expired(self):
         expired_ids = [eid for eid, e in self.entries.items() if e.is_expired()]
         for eid in expired_ids:
             entry = self.entries.pop(eid)
             content_hash = hashlib.md5(entry.content.encode()).hexdigest()
             self._content_hashes.discard(content_hash)
-    
-    def _evict_oldest(self):
-        if not self.entries:
+
+    def _evict_to_capacity(self):
+        """一次性淘汰到容量上限（I4：批处理，替代逐条删除 + 反复 O(n) 扫描）"""
+        if len(self.entries) <= self.MAX_ENTRIES:
             return
-        oldest_id = min(self.entries, key=lambda k: self.entries[k].timestamp)
-        entry = self.entries.pop(oldest_id)
-        content_hash = hashlib.md5(entry.content.encode()).hexdigest()
-        self._content_hashes.discard(content_hash)
-    
+        overflow = len(self.entries) - self.MAX_ENTRIES
+        oldest_ids = sorted(self.entries, key=lambda k: self.entries[k].timestamp)[:overflow]
+        for eid in oldest_ids:
+            entry = self.entries.pop(eid)
+            content_hash = hashlib.md5(entry.content.encode()).hexdigest()
+            self._content_hashes.discard(content_hash)
+
     def clear(self):
-        self.entries.clear()
-        self._content_hashes.clear()
+        with self._lock:
+            self.entries.clear()
+            self._content_hashes.clear()
     
     def size(self) -> int:
         return len(self.entries)
@@ -191,116 +203,143 @@ class UserMemory:
         self.entries: Dict[str, MemoryEntry] = {}
         self._content_hashes: set = set()
         self._storage_path = self.config.get("storage_path", "")
+        self._last_flush = 0.0
+        self._lock = threading.RLock()  # I5：统一线程安全契约
         if self._storage_path:
             self._load()
     
     def store(self, content: str, category: str = "preference", importance: float = 0.5,
               tags: List[str] = None, source: str = "user") -> Optional[str]:
-        content_hash = hashlib.md5(content.encode()).hexdigest()
-        if content_hash in self._content_hashes:
-            return None
-        
-        entry_id = f"usr_{content_hash[:8]}"
-        entry = MemoryEntry(
-            id=entry_id,
-            content=content,
-            tier=MemoryTier.USER,
-            category=category,
-            importance=importance,
-            tags=tags or [],
-            source=source,
-            ttl=None
-        )
-        
-        self.entries[entry_id] = entry
-        self._content_hashes.add(content_hash)
-        
-        if len(self.entries) > self.MAX_ENTRIES:
-            self._evict_low_importance()
-        
-        if self._storage_path:
-            self._save()
-        
-        return entry_id
-    
-    def retrieve(self, query: str, top_k: int = 5) -> List[Tuple[MemoryEntry, float]]:
-        results = []
-        query_lower = query.lower()
-        
-        for entry in self.entries.values():
-            score = 0.0
-            if query_lower in entry.content.lower():
-                score = 0.8 * entry.importance
-            elif any(query_lower in tag.lower() for tag in entry.tags):
-                score = 0.6 * entry.importance
-            elif any(w in entry.content.lower() for w in query_lower.split() if len(w) > 1):
-                score = 0.3 * entry.importance
-            
-            if score > 0:
-                entry.access_count += 1
-                entry.last_accessed = datetime.now().isoformat()
-                results.append((entry, score))
-        
-        results.sort(key=lambda x: x[1], reverse=True)
-        return results[:top_k]
-    
+        with self._lock:
+            content_hash = hashlib.md5(content.encode()).hexdigest()
+            if content_hash in self._content_hashes:
+                return None
+
+            entry_id = f"usr_{content_hash[:8]}"
+            entry = MemoryEntry(
+                id=entry_id,
+                content=content,
+                tier=MemoryTier.USER,
+                category=category,
+                importance=importance,
+                tags=tags or [],
+                source=source,
+                ttl=None
+            )
+
+            self.entries[entry_id] = entry
+            self._content_hashes.add(content_hash)
+
+            if len(self.entries) > self.MAX_ENTRIES:
+                self._evict_low_importance()
+
+            if self._storage_path:
+                self._save()
+
+            return entry_id
+
+    def retrieve(self, query: str, top_k: int = 5, min_score: float = 0.0) -> List[Tuple[MemoryEntry, float]]:
+        with self._lock:
+            results = []
+            query_lower = query.lower()
+
+            for entry in self.entries.values():
+                score = 0.0
+                if query_lower in entry.content.lower():
+                    score = 0.8 * entry.importance
+                elif any(query_lower in tag.lower() for tag in entry.tags):
+                    score = 0.6 * entry.importance
+                elif any(w in entry.content.lower() for w in query_lower.split() if len(w) > 1):
+                    score = 0.3 * entry.importance
+
+                if score > 0:
+                    entry.access_count += 1
+                    entry.last_accessed = datetime.now().isoformat()
+                    results.append((entry, score))
+
+            # 分数归一化到 [0,1] + 阈值过滤（I3）
+            normalized = [
+                (entry, max(0.0, min(1.0, score)))
+                for entry, score in results
+                if max(0.0, min(1.0, score)) >= min_score
+            ]
+            normalized.sort(key=lambda x: x[1], reverse=True)
+            return normalized[:top_k]
+
     def update_preference(self, category: str, key: str, value: str):
-        pref_content = f"{category}:{key}={value}"
-        content_hash = hashlib.md5(pref_content.encode()).hexdigest()
-        existing_id = f"usr_{content_hash[:8]}"
-        
-        if existing_id in self.entries:
-            self.entries[existing_id].content = pref_content
-            self.entries[existing_id].importance = min(1.0, self.entries[existing_id].importance + 0.1)
-        else:
-            self.store(pref_content, category=category, importance=0.7, tags=[category, key])
-    
+        with self._lock:
+            pref_content = f"{category}:{key}={value}"
+            content_hash = hashlib.md5(pref_content.encode()).hexdigest()
+            existing_id = f"usr_{content_hash[:8]}"
+
+            if existing_id in self.entries:
+                self.entries[existing_id].content = pref_content
+                self.entries[existing_id].importance = min(1.0, self.entries[existing_id].importance + 0.1)
+            else:
+                self.store(pref_content, category=category, importance=0.7, tags=[category, key])
+
     def get_preferences(self, category: str = None) -> Dict[str, str]:
-        prefs = {}
-        for entry in self.entries.values():
-            if entry.category in ("preference", category or entry.category):
-                if "=" in entry.content:
-                    k, v = entry.content.split("=", 1)
-                    if ":" in k:
-                        k = k.split(":", 1)[1]
-                    prefs[k] = v
-        return prefs
+        with self._lock:
+            prefs = {}
+            for entry in self.entries.values():
+                if entry.category in ("preference", category or entry.category):
+                    if "=" in entry.content:
+                        k, v = entry.content.split("=", 1)
+                        if ":" in k:
+                            k = k.split(":", 1)[1]
+                        prefs[k] = v
+            return prefs
     
     def _evict_low_importance(self):
-        if not self.entries:
+        """一次性淘汰到容量上限（I4：批处理，替代逐条删除）"""
+        if len(self.entries) <= self.MAX_ENTRIES:
             return
-        lowest_id = min(self.entries, key=lambda k: self.entries[k].importance)
-        entry = self.entries.pop(lowest_id)
-        content_hash = hashlib.md5(entry.content.encode()).hexdigest()
-        self._content_hashes.discard(content_hash)
+        overflow = len(self.entries) - self.MAX_ENTRIES
+        lowest_ids = sorted(self.entries, key=lambda k: self.entries[k].importance)[:overflow]
+        for eid in lowest_ids:
+            entry = self.entries.pop(eid)
+            content_hash = hashlib.md5(entry.content.encode()).hexdigest()
+            self._content_hashes.discard(content_hash)
     
     def _save(self):
-        if not self._storage_path:
-            return
-        data = {
-            "entries": {k: v.to_dict() for k, v in self.entries.items()},
-            "config": self.config
-        }
-        try:
-            os.makedirs(os.path.dirname(self._storage_path), exist_ok=True)
-            with open(self._storage_path, 'w') as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-        except Exception:
-            pass
-    
+        with self._lock:
+            if not self._storage_path:
+                return
+            # 节流：窗口内的多次写入合并为一次全量 JSON 重写（I4）
+            now = time.time()
+            if now - self._last_flush < FLUSH_INTERVAL:
+                return
+            data = {
+                "entries": {k: v.to_dict() for k, v in self.entries.items()},
+                "config": self.config
+            }
+            try:
+                os.makedirs(os.path.dirname(self._storage_path), exist_ok=True)
+                with open(self._storage_path, 'w') as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                self._last_flush = now
+            except Exception:
+                pass
+
+    def flush(self):
+        """强制落盘（绕过节流窗口），建议进程退出前调用"""
+        self._last_flush = 0.0
+        self._save()
+
     def _load(self):
-        if not self._storage_path or not os.path.exists(self._storage_path):
-            return
-        try:
-            with open(self._storage_path, 'r') as f:
-                data = json.load(f)
-            for k, v in data.get("entries", {}).items():
-                v["tier"] = MemoryTier(v["tier"])
-                self.entries[k] = MemoryEntry(**v)
-                content_hash = hashlib.md5(v["content"].encode()).hexdigest()
-                self._content_hashes.add(content_hash)
-        except Exception:
-            pass
+        with self._lock:
+            if not self._storage_path or not os.path.exists(self._storage_path):
+                return
+            try:
+                with open(self._storage_path, 'r') as f:
+                    data = json.load(f)
+                for k, v in data.get("entries", {}).items():
+                    v["tier"] = MemoryTier(v["tier"])
+                    self.entries[k] = MemoryEntry(**v)
+                    content_hash = hashlib.md5(v["content"].encode()).hexdigest()
+                    self._content_hashes.add(content_hash)
+            except Exception:
+                pass
     
     def size(self) -> int:
         return len(self.entries)
@@ -322,81 +361,103 @@ class GlobalMemory:
         self.entries: Dict[str, MemoryEntry] = {}
         self._content_hashes: set = set()
         self._storage_path = self.config.get("storage_path", "")
+        self._last_flush = 0.0
+        self._lock = threading.RLock()  # I5：统一线程安全契约
         if self._storage_path:
             self._load()
     
     def store(self, content: str, category: str = "knowledge", importance: float = 0.7,
               tags: List[str] = None, source: str = "system") -> Optional[str]:
-        content_hash = hashlib.md5(content.encode()).hexdigest()
-        if content_hash in self._content_hashes:
-            return None
-        
-        entry_id = f"glb_{content_hash[:8]}"
-        entry = MemoryEntry(
-            id=entry_id,
-            content=content,
-            tier=MemoryTier.GLOBAL,
-            category=category,
-            importance=importance,
-            tags=tags or [],
-            source=source,
-            ttl=None
-        )
-        
-        self.entries[entry_id] = entry
-        self._content_hashes.add(content_hash)
-        
-        if self._storage_path:
-            self._save()
-        
-        return entry_id
-    
-    def retrieve(self, query: str, top_k: int = 5) -> List[Tuple[MemoryEntry, float]]:
-        results = []
-        query_lower = query.lower()
-        
-        for entry in self.entries.values():
-            score = 0.0
-            if query_lower in entry.content.lower():
-                score = 0.9 * entry.importance
-            elif any(query_lower in tag.lower() for tag in entry.tags):
-                score = 0.7 * entry.importance
-            elif any(w in entry.content.lower() for w in query_lower.split() if len(w) > 1):
-                score = 0.4 * entry.importance
-            
-            if score > 0:
-                results.append((entry, score))
-        
-        results.sort(key=lambda x: x[1], reverse=True)
-        return results[:top_k]
+        with self._lock:
+            content_hash = hashlib.md5(content.encode()).hexdigest()
+            if content_hash in self._content_hashes:
+                return None
+
+            entry_id = f"glb_{content_hash[:8]}"
+            entry = MemoryEntry(
+                id=entry_id,
+                content=content,
+                tier=MemoryTier.GLOBAL,
+                category=category,
+                importance=importance,
+                tags=tags or [],
+                source=source,
+                ttl=None
+            )
+
+            self.entries[entry_id] = entry
+            self._content_hashes.add(content_hash)
+
+            if self._storage_path:
+                self._save()
+
+            return entry_id
+
+    def retrieve(self, query: str, top_k: int = 5, min_score: float = 0.0) -> List[Tuple[MemoryEntry, float]]:
+        with self._lock:
+            results = []
+            query_lower = query.lower()
+
+            for entry in self.entries.values():
+                score = 0.0
+                if query_lower in entry.content.lower():
+                    score = 0.9 * entry.importance
+                elif any(query_lower in tag.lower() for tag in entry.tags):
+                    score = 0.7 * entry.importance
+                elif any(w in entry.content.lower() for w in query_lower.split() if len(w) > 1):
+                    score = 0.4 * entry.importance
+
+                if score > 0:
+                    results.append((entry, score))
+
+            # 分数归一化到 [0,1] + 阈值过滤（I3）
+            normalized = [
+                (entry, max(0.0, min(1.0, score)))
+                for entry, score in results
+                if max(0.0, min(1.0, score)) >= min_score
+            ]
+            normalized.sort(key=lambda x: x[1], reverse=True)
+            return normalized[:top_k]
     
     def _save(self):
-        if not self._storage_path:
-            return
-        data = {
-            "entries": {k: v.to_dict() for k, v in self.entries.items()},
-            "config": self.config
-        }
-        try:
-            os.makedirs(os.path.dirname(self._storage_path), exist_ok=True)
-            with open(self._storage_path, 'w') as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-        except Exception:
-            pass
-    
+        with self._lock:
+            if not self._storage_path:
+                return
+            # 节流：窗口内的多次写入合并为一次全量 JSON 重写（I4）
+            now = time.time()
+            if now - self._last_flush < FLUSH_INTERVAL:
+                return
+            data = {
+                "entries": {k: v.to_dict() for k, v in self.entries.items()},
+                "config": self.config
+            }
+            try:
+                os.makedirs(os.path.dirname(self._storage_path), exist_ok=True)
+                with open(self._storage_path, 'w') as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                self._last_flush = now
+            except Exception:
+                pass
+
+    def flush(self):
+        """强制落盘（绕过节流窗口），建议进程退出前调用"""
+        self._last_flush = 0.0
+        self._save()
+
     def _load(self):
-        if not self._storage_path or not os.path.exists(self._storage_path):
-            return
-        try:
-            with open(self._storage_path, 'r') as f:
-                data = json.load(f)
-            for k, v in data.get("entries", {}).items():
-                v["tier"] = MemoryTier(v["tier"])
-                self.entries[k] = MemoryEntry(**v)
-                content_hash = hashlib.md5(v["content"].encode()).hexdigest()
-                self._content_hashes.add(content_hash)
-        except Exception:
-            pass
+        with self._lock:
+            if not self._storage_path or not os.path.exists(self._storage_path):
+                return
+            try:
+                with open(self._storage_path, 'r') as f:
+                    data = json.load(f)
+                for k, v in data.get("entries", {}).items():
+                    v["tier"] = MemoryTier(v["tier"])
+                    self.entries[k] = MemoryEntry(**v)
+                    content_hash = hashlib.md5(v["content"].encode()).hexdigest()
+                    self._content_hashes.add(content_hash)
+            except Exception:
+                pass
     
     def size(self) -> int:
         return len(self.entries)
@@ -444,17 +505,18 @@ class HybridMemory:
             return self.global_mem.store(content, category, importance, tags, source)
         return None
     
-    def retrieve(self, query: str, top_k: int = 5, 
-                 tiers: List[MemoryTier] = None) -> List[Tuple[MemoryEntry, float]]:
+    def retrieve(self, query: str, top_k: int = 5,
+                 tiers: List[MemoryTier] = None,
+                 min_score: float = 0.0) -> List[Tuple[MemoryEntry, float]]:
         tiers = tiers or [MemoryTier.WORKSPACE, MemoryTier.USER, MemoryTier.GLOBAL]
         all_results = []
-        
+
         if MemoryTier.WORKSPACE in tiers:
-            all_results.extend(self.workspace.retrieve(query, top_k))
+            all_results.extend(self.workspace.retrieve(query, top_k, min_score=min_score))
         if MemoryTier.USER in tiers:
-            all_results.extend(self.user.retrieve(query, top_k))
+            all_results.extend(self.user.retrieve(query, top_k, min_score=min_score))
         if MemoryTier.GLOBAL in tiers:
-            all_results.extend(self.global_mem.retrieve(query, top_k))
+            all_results.extend(self.global_mem.retrieve(query, top_k, min_score=min_score))
         
         tier_priority = {
             MemoryTier.WORKSPACE: 1.1,

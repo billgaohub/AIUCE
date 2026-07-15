@@ -54,6 +54,7 @@ from .l1_identity import IdentityLayer
 from .l2_perception import PerceptionLayer
 from .l3_reasoning import ReasoningLayer
 from .l4_memory import MemoryLayer
+from .core.unified_memory import UnifiedMemoryLayer
 from .l5_decision import DecisionLayer
 from .l6_experience import ExperienceLayer
 from .l7_evolution import EvolutionLayer
@@ -89,6 +90,7 @@ __all__ = [
     "PerceptionLayer",
     "ReasoningLayer",
     "MemoryLayer",
+    "UnifiedMemoryLayer",
     "DecisionLayer",
     "ExperienceLayer",
     "EvolutionLayer",
