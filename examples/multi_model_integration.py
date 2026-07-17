@@ -1,19 +1,25 @@
 """
 AIUCE Multi-Model Integration - 多模型集成示例
 
-展示如何配置和使用多个 AI 提供商：
-- OpenAI (GPT-4o-mini)
-- Anthropic (Claude 3.5 Sonnet)
-- Alibaba (Qwen-Plus)
-- Local (MLX/Ollama)
+展示如何使用 L8 接口层统一管理多个 AI 提供商：
+- 列出已注册提供商（OpenAI / Claude / 通义千问 / DeepSeek / 本地）
+- 调用模型（本示例开启 mock 模式，无需真实 API Key）
+- 查看调用统计与提供商可用性
+
+运行：
+    python examples/multi_model_integration.py
 """
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from aiuce import AIUCESystem
-from aiuce.l8_interface import L8Interface, ModelProvider
+from eleven_layer_ai.l8_interface import InterfaceLayer, ModelProvider
+
+# 开启 mock 模式：call_model 直接返回模拟响应，不发起真实网络请求。
+CONFIG = {"mock": True}
+
 
 def demonstrate_multi_model():
     """演示多模型集成"""
@@ -22,84 +28,41 @@ def demonstrate_multi_model():
     print("=" * 60)
 
     # 1. 初始化接口层
-    print("\n[L8 Interface] 初始化模型网关...")
-    interface = L8Interface()
+    print("\n[L8 Interface] 初始化模型网关（mock 模式）...")
+    interface = InterfaceLayer(CONFIG)
 
-    # 2. 配置多个提供商
-    print("\n[Step 1] 配置模型提供商...")
-    providers = [
-        {
-            "name": "openai",
-            "model": "gpt-4o-mini",
-            "api_key": os.getenv("OPENAI_API_KEY", "sk-xxx")
-        },
-        {
-            "name": "anthropic",
-            "model": "claude-3-5-sonnet-20241022",
-            "api_key": os.getenv("ANTHROPIC_API_KEY", "sk-xxx")
-        },
-        {
-            "name": "alibaba",
-            "model": "qwen-plus",
-            "api_key": os.getenv("ALIBABA_API_KEY", "sk-xxx")
-        },
-        {
-            "name": "local",
-            "endpoint": "http://localhost:8080/v1",
-            "model": "qwen2.5-7b-instruct"
-        }
-    ]
+    # 2. 列出已注册提供商
+    print("\n[Step 1] 已注册提供商：")
+    for p in interface.list_providers():
+        print(f"  ✅ {p['id']} ({p['model']}) - 能力: {', '.join(p['capability'])} | 可用: {p['available']}")
 
-    for provider in providers:
-        interface.add_provider(provider)
-        print(f"  ✅ 已添加: {provider['name']} ({provider.get('model', 'local')})")
-
-    # 3. 测试不同模型
-    print("\n[Step 2] 测试不同模型...")
+    # 3. 调用模型（mock 响应）
+    print("\n[Step 2] 调用模型（mock）：")
     test_prompt = "用一句话解释什么是人工智能"
-
-    for provider_name in ["openai", "anthropic", "alibaba", "local"]:
+    for provider_id in ["openai", "claude", "qwen", "deepseek"]:
         try:
-            print(f"\n  [{provider_name.upper()}]")
-            response = interface.call(
-                provider=provider_name,
-                prompt=test_prompt,
-                max_tokens=100
-            )
-            print(f"  响应: {response[:100]}...")
-        except Exception as e:
-            print(f"  ⚠️  调用失败: {str(e)[:50]}...")
+            response = interface.call_model(prompt=test_prompt, preferred_provider=provider_id)
+            status = "✅" if response.success else "⚠️"
+            print(f"  [{provider_id.upper()}] {status} {response.model}: {response.content[:60]}")
+        except Exception as e:  # noqa: BLE001 - 演示中容忍个别提供商失败
+            print(f"  [{provider_id.upper()}] ⚠️ 调用失败: {str(e)[:50]}")
 
-    # 4. 自动模型选择
-    print("\n[Step 3] 自动模型选择...")
-    tasks = [
-        ("简单问答", "今天星期几？", "fast"),
-        ("复杂推理", "分析人工智能对社会的影响", "quality"),
-        ("批量处理", "生成100个产品描述", "economy")
-    ]
+    # 4. 自动模型选择（按能力/成本）
+    print("\n[Step 3] 提供商查询：")
+    qwen = interface.get_provider("qwen")
+    if qwen:
+        print(f"  通义千问: {qwen.model_name} @ {qwen.endpoint}")
 
-    for task_name, prompt, tier in tasks:
-        selected = interface.select_model(tier)
-        print(f"  任务: {task_name}")
-        print(f"  策略: {tier}")
-        print(f"  选择: {selected['provider']} - {selected['model']}")
-
-    # 5. 负载均衡
-    print("\n[Step 4] 负载均衡测试...")
-    requests = ["请求1", "请求2", "请求3", "请求4", "请求5"]
-
-    distribution = {}
-    for req in requests:
-        provider = interface.get_next_provider()
-        provider_name = provider['name']
-        distribution[provider_name] = distribution.get(provider_name, 0) + 1
-
-    print("  请求分布:")
-    for provider, count in distribution.items():
-        print(f"    {provider}: {count} 次")
+    # 5. 切换可用性 + 调用统计
+    print("\n[Step 4] 可用性切换与统计：")
+    interface.set_provider_available("deepseek", False)
+    print(f"  deepseek 可用性已设为: {interface.get_provider('deepseek').available}")
+    stats = interface.get_stats()
+    print(f"  调用统计: {stats}")
 
     print("\n" + "=" * 60)
     print("✅ 多模型集成演示完成")
+
 
 if __name__ == "__main__":
     demonstrate_multi_model()

@@ -252,7 +252,7 @@ class ReasoningLayer:
         self.active_models = self.config.get("active_models", self.MIND_MODELS)
         self.reasoning_depth = self.config.get("depth", 3)
         self.last_reasoning = None
-        self._hybrid_memory = HybridMemory(config.get("hybrid_memory", {}))
+        self._hybrid_memory = HybridMemory(self.config.get("hybrid_memory", {}))
 
     # ─────────────────────────────────────────────────────────
     # Phase 1 增强：流式推理 + 混合记忆

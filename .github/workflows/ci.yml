@@ -22,20 +22,16 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 black mypy
     
-    # 说明：test job 的 pytest 是真正阻断的关卡；
-    # black/flake8/mypy 在本遗留代码库上仍有大量既有发现（mypy ~323 处、flake8 ~1982 处），
-    # 故显式以 continue-on-error 标记为“信息性/非阻断”，不再用 `|| true` 掩盖失败。
-    # 配置见 .flake8 与 pyproject.toml。SONUV/AIOBR 应从零启用严格阻断。
-    - name: Run Black
+    # 说明：test job 的 pytest 是真正阻断的关卡。
+    # 本遗留代码库存量 lint 债务很大（flake8 ~1579、mypy ~295），一次性清零不可行且高风险；
+    # 故采用「增量门禁」（scripts/lint_gate.sh）：只在新增错误数回退基线时失败，
+    # 不要求零错误。基线见 scripts/lint_baseline.txt。
+    # 配置：.flake8 与 pyproject.toml。SONUV/AIOBR 应从零启用严格阻断。
+    - name: Run incremental lint gate (flake8 + mypy)
+      run: bash scripts/lint_gate.sh
+
+    - name: Run Black (formatting, informational)
       run: black --check eleven_layer_ai
-      continue-on-error: true
-
-    - name: Run Flake8
-      run: flake8 eleven_layer_ai
-      continue-on-error: true
-
-    - name: Run MyPy
-      run: mypy eleven_layer_ai
       continue-on-error: true
 
   test:

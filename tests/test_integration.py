@@ -58,10 +58,10 @@ class TestNeuralBusIntegration(unittest.TestCase):
         self.assertGreaterEqual(len(events), 0)
 
     def test_layer_status_with_neural_bus(self):
-        """获取状态包含 NeuralBus 统计"""
+        """获取状态包含 NeuralBus 统计（死代码 MessageBus 已移除，仅保留 NeuralBus）"""
         status = self.system.get_status()
         self.assertIn('neural_bus', status)
-        self.assertIn('message_bus', status)
+        self.assertNotIn('message_bus', status)
 
 
 class TestEndToEndPipeline(unittest.TestCase):

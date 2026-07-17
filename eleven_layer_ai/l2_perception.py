@@ -115,7 +115,7 @@ class PerceptionLayer:
         self.data_sources = self._init_data_sources()
         self.last_observation = None
         self._providers: Dict[str, DataProvider] = {}
-        self._intent_flow = IntentFlow(config.get("intent_flow", {}))
+        self._intent_flow = IntentFlow(self.config.get("intent_flow", {}))
         self._register_providers()
     
     def _register_providers(self):

@@ -17,11 +17,10 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 try:
-    from .core.message import Message, MessageBus, LayerLevel
     from .core.constitution import Constitution
     from .core.audit import AuditLog
     from .core.constants import (
-        Layer, LAYER_OFFICIALS, MsgType, RiskLevel, PATHS
+        Layer, LAYER_OFFICIALS, RiskLevel, PATHS
     )
     from .core.neural_bus import NeuralBus, EventType, Event
     from .core.state_daemon import StateDaemon, EventType as StateEventType
@@ -31,11 +30,10 @@ try:
         detect_intent, contains_sensitive, format_layer_chain,
     )
 except ImportError:
-    from core.message import Message, MessageBus, LayerLevel
     from core.constitution import Constitution
     from core.audit import AuditLog
     from core.constants import (
-        Layer, LAYER_OFFICIALS, MsgType, RiskLevel, PATHS
+        Layer, LAYER_OFFICIALS, RiskLevel, PATHS
     )
     from core.neural_bus import NeuralBus, EventType, Event
     from core.state_daemon import StateDaemon, EventType as StateEventType
@@ -75,8 +73,8 @@ class ElevenLayerSystem:
     十一层架构 AI 系统主入口
 
     层间通信：
-    所有层级通过 MessageBus 异步传递消息，
-    每个层级输出 Event，触发下游处理。
+    所有层级通过 NeuralBus（事件溯源）异步传递事件，
+    触发下游处理。
 
     数据流：
     外部输入 → L2感知 → L3推理 → L4记忆 → L5决策 → L7演化 → L8接口 → L9执行
@@ -168,11 +166,9 @@ class ElevenLayerSystem:
         print("  [L10 沙盒层] 庄子/钦天监 - 影子宇宙就位")
 
     def _init_message_bus(self):
-        """初始化消息总线 + 神经总线（Phase 1 集成）"""
-        self.message_bus = MessageBus()
+        """初始化神经总线（事件溯源）"""
         self.neural_bus = NeuralBus(self.config.get("neural_bus", {}))
         self.neural_bus.start()
-        print("  [消息总线] 层间通信通道建立")
         print("  [神经总线] 事件溯源引擎启动")
 
     def _init_audit(self):
@@ -184,15 +180,8 @@ class ElevenLayerSystem:
         print("  [审计日志] 不可篡改日志系统就位")
 
     def _setup_message_routes(self):
-        """设置消息路由钩子（兼容 MessageBus + NeuralBus 双总线）"""
-        # MessageBus hooks (向后兼容)
-        self.message_bus.add_hook(MsgType.REALITY_DATA, self._on_reality_data)
-        self.message_bus.add_hook(MsgType.MEMORY_RESULT, self._on_memory_result)
-        self.message_bus.add_hook(MsgType.DECISION_RESULT, self._on_decision_result)
-        self.message_bus.add_hook(MsgType.SIMULATION_RESULT, self._on_simulation_result)
-        self.message_bus.add_hook(MsgType.EXECUTION_RESULT, self._on_execution_result)
-        
-        # NeuralBus subscriptions (新事件溯源)
+        """设置神经总线事件订阅（事件溯源）"""
+        # NeuralBus subscriptions
         self.neural_bus.subscribe(
             subscriber_id="system_reality",
             event_types=[EventType.REALITY_DATA],
@@ -203,28 +192,6 @@ class ElevenLayerSystem:
             event_types=[EventType.DECISION_MADE, EventType.DECISION_REJECTED],
             callback=self._on_neural_decision
         )
-
-    # ── Message Handlers ──────────────────────────────────────────
-
-    def _on_reality_data(self, msg: Message):
-        """L2 感知结果到达"""
-        pass
-
-    def _on_memory_result(self, msg: Message):
-        """L4 记忆结果到达"""
-        pass
-
-    def _on_decision_result(self, msg: Message):
-        """L5 决策结果到达"""
-        pass
-
-    def _on_simulation_result(self, msg: Message):
-        """L10 模拟结果到达"""
-        pass
-
-    def _on_execution_result(self, msg: Message):
-        """L9 执行结果到达 — 复盘已由 run() 中 L6 阶段统一处理，此处仅记录日志"""
-        pass
 
     # ── NeuralBus Handlers ──────────────────────────────────────
 
@@ -294,12 +261,6 @@ class ElevenLayerSystem:
                     
                     result["layers_involved"].append("L2")
 
-                # 双总线: MessageBus + NeuralBus
-                self.message_bus.send(
-                    source="L2", target="L3",
-                    msg_type=MsgType.REALITY_DATA,
-                    payload={"perception": perception_data, "user_input": user_input}
-                )
                 self.neural_bus.emit(
                     EventType.REALITY_DATA, source="L2", target="L3",
                     payload={"perception": perception_data, "user_input": user_input}
@@ -333,12 +294,6 @@ class ElevenLayerSystem:
                 relevant_memories = self.memory.retrieve(user_input)
                 result["layers_involved"].append("L4")
 
-                # 双总线: MessageBus + NeuralBus
-                self.message_bus.send(
-                    source="L4", target="L3",
-                    msg_type=MsgType.MEMORY_RESULT,
-                    payload={"memories": relevant_memories}
-                )
                 self.neural_bus.emit(
                     EventType.MEMORY_RETRIEVE, source="L4", target="L3",
                     payload={"memories": relevant_memories}
@@ -383,7 +338,6 @@ class ElevenLayerSystem:
                 )
                 result["audit_id"] = decision_id
 
-                # 双总线: MessageBus + NeuralBus
                 if decision.get("approved"):
                     self.neural_bus.emit(
                         EventType.DECISION_MADE, source="L5", target="L10",
@@ -394,12 +348,6 @@ class ElevenLayerSystem:
                         EventType.DECISION_REJECTED, source="L5", target="",
                         payload={"decision": decision, "decision_id": decision_id}
                     )
-
-                self.message_bus.send(
-                    source="L5", target="",
-                    msg_type=MsgType.DECISION_RESULT,
-                    payload={"decision": decision, "decision_id": decision_id}
-                )
 
                 if not decision.get("approved"):
                     result["status"] = "decision_rejected"
@@ -450,17 +398,6 @@ class ElevenLayerSystem:
                     
                     # ADR-001: 发布执行事件
                     self.state_daemon.emit_action(agent_id="L9", action_type="execution", target=decision.get("action", ""), params={"success": action_result.get("executed", False)})
-
-                self.message_bus.send(
-                    source="L9", target="L6",
-                    msg_type=MsgType.EXECUTION_RESULT,
-                    payload={
-                        "user_input": user_input,
-                        "decision": decision,
-                        "response": model_response.content,
-                        "result": action_result
-                    }
-                )
 
                 self.neural_bus.emit(
                     EventType.EXECUTION_RESULT, source="L9", target="L6",
@@ -572,7 +509,6 @@ class ElevenLayerSystem:
                 "L9_agent": len(self.agent.tools),
                 "L10_sandbox": len(self.sandbox.simulation_history),
             },
-            "message_bus": self.message_bus.stats(),
             "neural_bus": self.neural_bus.stats(),
             "audit": self.audit.get_stats(),
         }

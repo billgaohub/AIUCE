@@ -184,7 +184,7 @@ class StatusResponse(BaseModel):
     version: str
     build_date: str
     layers: Dict[str, Any]
-    message_bus: Dict[str, Any]
+    neural_bus: Dict[str, Any]
     audit: Dict[str, Any]
 
 
