@@ -31,6 +31,7 @@ from .l4_palace_memory import PalaceEngine, PalaceWing, PalaceMemory
 from .memory_sal import WorkingMemory
 from .hybrid_memory import MemoryTier as HybridTier
 from .memory_schema import MemoryEntryBase
+from .vector_memory import VectorIndex, DeterministicEmbeddingProvider
 from ..utils import simple_embedding, cosine_similarity
 
 
@@ -129,11 +130,23 @@ class UnifiedMemoryLayer:
         serving_cfg = self.config.get("serving", {})
         self.serving = WorkingMemory(serving_cfg)
 
+        # 真实向量索引（grok 式 KNN）：默认用确定性离线 provider（零依赖、可复现），
+        # 可注入真实语义模型（sentence-transformers / OpenAI 等）。
+        self._embedding_provider = embedding_provider or DeterministicEmbeddingProvider()
+        self._dim = len(self._embed("__dim_probe__"))
+        self._vector_index = VectorIndex(dim=self._dim)
+        # store 时持久化的向量缓存（sal_id -> 向量），避免检索时反复重算
+        self._embeddings: Dict[str, List[float]] = {}
+
         # 内容哈希集合：跨会话去重（C2 修复 —— 必须从已加载的索引重建，
         # 否则新实例加载磁盘数据后 _content_hashes 为空，去重失效）
+        # 同时重建向量索引，保证重启/跨会话后真实向量召回仍一致。
         self._content_hashes: set = set()
         for entry in self.serving.entries.values():
             self._content_hashes.add(hashlib.md5(entry.content.encode()).hexdigest())
+            vec = self._embed(entry.content)
+            self._embeddings[entry.id] = vec
+            self._vector_index.add(entry.id, vec)
 
     # ── 内部工具 ───────────────────────────────────────────────
 
@@ -206,12 +219,19 @@ class UnifiedMemoryLayer:
         )
 
         # 检索索引（SAL）：用于快速/语义检索
-        self.serving.store(
+        sal_id = self.serving.store(
             content=content,
             category=category,
             tags=tags or [],
             importance=importance,
         )
+
+        # 真实向量持久化 + KNN 索引（grok 式）：store 时即落向量，
+        # 使后续 retrieve 走 VectorIndex 做真实语义召回，而非仅在关键词候选上重排。
+        if sal_id is not None:
+            vec = self._embed(content)
+            self._embeddings[sal_id] = vec
+            self._vector_index.add(sal_id, vec)
 
         self._content_hashes.add(content_hash)
         return record.record_id
@@ -235,9 +255,10 @@ class UnifiedMemoryLayer:
         seen: set = set()
 
         query_vec = self._embed(query)
+
+        # 1) 主召回：SAL 关键词（FTS5 + LIKE + 内存兜底）—— 关键词得分 + 语义重排
         for entry, score in served:
-            # 语义重排：用 embedding 余弦对 SAL 分数做二次加权
-            vec = entry.embedding if entry.embedding else self._embed(entry.content)
+            vec = self._embeddings.get(entry.id, self._embed(entry.content))
             sem = max(0.0, cosine_similarity(query_vec, vec))
             combined = 0.6 * score + 0.4 * sem
             combined *= (0.5 + 0.5 * entry.importance)
@@ -246,12 +267,38 @@ class UnifiedMemoryLayer:
                     id=entry.id, content=entry.content, timestamp=entry.timestamp,
                     category=entry.category, tags=entry.tags, importance=entry.importance,
                     access_count=entry.access_count, last_accessed=entry.last_accessed,
-                    embedding=entry.embedding, source=entry.source, tier="global",
+                    embedding=vec, source=entry.source, tier="global",
                 )
                 results.append((view, combined))
                 seen.add(entry.id)
 
-        # 补充召回：Palace 确定性关键词（避免 SAL 索引遗漏）
+        # 2) 真实向量 KNN 召回（grok 式）：独立于关键词重叠，召回语义相近条目
+        #    —— 这是「真实向量记忆」的核心：即便查询与条目无任何词汇重合，
+        #       只要语义向量接近即可被召回（旧实现只能在关键词候选上重排，做不到）。
+        try:
+            for hid, sim in self._vector_index.search(query_vec, top_k * 2):
+                if hid in seen:
+                    continue
+                ventry = self.serving.entries.get(hid)
+                if ventry is None:
+                    continue
+                vec = self._embeddings.get(hid, self._embed(ventry.content))
+                sem = max(0.0, sim)
+                # 纯向量召回：combined = 语义相似度 × 重要性因子（同样受 min_score 门控）
+                combined = sem * (0.5 + 0.5 * ventry.importance)
+                if combined > min_score:
+                    view = MemoryEntry(
+                        id=ventry.id, content=ventry.content, timestamp=ventry.timestamp,
+                        category=ventry.category, tags=ventry.tags, importance=ventry.importance,
+                        access_count=ventry.access_count, last_accessed=ventry.last_accessed,
+                        embedding=vec, source=ventry.source, tier="global",
+                    )
+                    results.append((view, combined))
+                    seen.add(hid)
+        except Exception:
+            pass
+
+        # 3) 补充召回：Palace 确定性关键词（避免 SAL 索引遗漏）
         try:
             palace_hits = self.palace.retrieve(query, max_records=top_k)
             for record, score, _room in palace_hits:
@@ -300,7 +347,7 @@ class UnifiedMemoryLayer:
                 id=entry.id, content=entry.content, timestamp=entry.timestamp,
                 category=entry.category, tags=entry.tags, importance=entry.importance,
                 access_count=entry.access_count, last_accessed=entry.last_accessed,
-                embedding=entry.embedding, source=entry.source, tier="global",
+                embedding=self._embeddings.get(entry.id, []), source=entry.source, tier="global",
             )
         return out
 
@@ -310,6 +357,8 @@ class UnifiedMemoryLayer:
         palace_stats = self.palace.stats()
         return {
             "total_entries": serving_stats.get("total_entries", 0),
+            "vector_index_size": self._vector_index.size(),
+            "embedding_provider": type(self._embedding_provider).__name__,
             "l1_serving": serving_stats,
             "palace": palace_stats,
             "by_wing": palace_stats.get("by_wing", {}),

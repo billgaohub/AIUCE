@@ -3,6 +3,30 @@
 All notable changes to this project will be documented in this file.
 
 
+## [1.6.0] - 2026-07-15
+
+### Added - 真实向量记忆（grok 式 KNN）
+
+落地 xai-grok-memory 的「真实向量记忆」设计，将记忆检索从「仅关键词 + 检索时临时余弦重排」升级为「store 时持久化向量 + 独立向量 KNN 召回」：
+
+- `core/vector_memory.py`（新）:
+  - `DeterministicEmbeddingProvider`（= `MockEmbeddingProvider`）：零依赖、确定性的离线 embedding，使语义检索可复现、可单测，无需联网或大模型；真实环境可注入 sentence-transformers / OpenAI embeddings 等。
+  - `VectorIndex`：真实向量 KNN 索引（numpy 精确检索，线程安全），行向量 L2 归一化后余弦 = 点积。替代本环境因 `enable_load_extension` 禁用而无法加载的 sqlite-vec 扩展，语义召回能力等价且不引入原生扩展依赖。
+  - 复用既有 `EmbeddingProvider` 协议，不重复定义。
+- `core/unified_memory.py`（`UnifiedMemoryLayer`，官方记忆层）：
+  - store 时持久化向量并写入 `VectorIndex`（重启时从 SAL 索引重建，保证跨会话一致）；
+  - `retrieve` 新增**独立向量 KNN 召回分支**：即便查询与条目无任何词汇重叠，只要语义向量接近即可被召回（旧实现只能在关键词候选上重排，做不到）；
+  - 默认 `embedding_provider = DeterministicEmbeddingProvider`（离线、可复现、语义可用），真实模型可注入；`stats()` 暴露 `vector_index_size` 与 `embedding_provider`。
+- `core/hybrid_memory.py`（`HybridMemory`，可选增强）：
+  - 新增可选 `embedding_provider` 参数；注入时三层子记忆（Workspace/User/Global）接入 `VectorIndex` 做向量召回；**默认 None 时零行为变化**，既有测试不受影响。
+- `tests/test_vector_memory.py`（新）：覆盖 provider 确定性/协议、VectorIndex KNN 正确性、UnifiedMemoryLayer 跨词汇语义召回、HybridMemory 向量召回与默认无-provider 不变性。
+
+### Changed
+
+- 公开 API（`store` / `retrieve(min_score)` / `stats` / `MemoryEntry` / `MemoryBackend`）保持不变，既有测试零改动。
+- 全量测试 174/174 通过；lint 增量门禁（flake8/mypy）未引入新回退。
+
+
 ## [1.5.0] - 2026-05-04
 
 ### Added - 生产就绪修复（三阶段）

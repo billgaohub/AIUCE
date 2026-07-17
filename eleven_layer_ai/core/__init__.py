@@ -39,6 +39,13 @@ from .memory_sal import (
 # 统一记忆数据契约（I1/I2 收敛基座）
 from .memory_schema import MemoryEntryBase, MemoryBackend
 
+# 真实向量记忆（grok 式 KNN）：可插拔 EmbeddingProvider + 向量索引
+from .vector_memory import (
+    VectorIndex,
+    DeterministicEmbeddingProvider,
+    MockEmbeddingProvider,
+)
+
 # 神经总线
 from .neural_bus import (
     EventType, Event, EventSubscription,
@@ -213,6 +220,8 @@ __all__ = [
     "WorkingMemory", "SemanticDisk", "MemoryLayerSAL",
     # 统一记忆数据契约
     "MemoryEntryBase", "MemoryBackend",
+    # 真实向量记忆（grok 式 KNN）
+    "VectorIndex", "DeterministicEmbeddingProvider", "MockEmbeddingProvider",
     # 神经总线
     "EventType", "Event", "EventSubscription",
     "EventStore", "EventQueue", "NeuralBus",

@@ -34,6 +34,53 @@ import time
 import threading
 
 from .memory_schema import MemoryEntryBase
+from .vector_memory import VectorIndex
+
+
+# ── 向量索引辅助（grok 式 KNN，可选启用）──────────────────────────────────
+# 仅当 embedding_provider 被注入时才构建索引；默认 None 时这些函数直接短路，
+# 保证 HybridMemory 在无 provider 时行为完全不变（既有测试零影响）。
+
+def _vector_index_add(provider, index, cache, entry_id, content):
+    """把一条记忆的向量写入索引缓存（provider/index 为 None 时跳过）"""
+    if provider is None or index is None:
+        return
+    vec = provider.embed(content)
+    cache[entry_id] = vec
+    index.add(entry_id, vec)
+
+
+def _rebuild_vector_index(provider, index, cache, entries):
+    """从已加载的条目重建向量索引（重启/跨会话一致性）"""
+    if provider is None or index is None:
+        return
+    for entry in entries.values():
+        _vector_index_add(provider, index, cache, entry.id, entry.content)
+
+
+def _vector_recall(provider, index, cache, entries, query, top_k, min_score, exclude_ids):
+    """
+    真实向量 KNN 召回：返回 [(entry, score), ...]，仅包含语义相近且未被
+    关键词路径召回的条目。combined = 语义相似度 × 重要性因子，受 min_score 门控。
+    """
+    if provider is None or index is None:
+        return []
+    out = []
+    query_vec = provider.embed(query)
+    for hid, sim in index.search(query_vec, top_k):
+        if hid in exclude_ids:
+            continue
+        entry = entries.get(hid)
+        if entry is None:
+            continue
+        sem = max(0.0, sim)
+        combined = sem * (0.5 + 0.5 * entry.importance)
+        if combined > min_score:
+            entry.access_count += 1
+            entry.last_accessed = datetime.now().isoformat()
+            out.append((entry, combined))
+    return out
+
 
 # 落盘节流窗口（秒）：窗口内的多次写入合并为一次全量 JSON 重写（I4）
 FLUSH_INTERVAL = 1.0
@@ -92,11 +139,20 @@ class WorkspaceMemory:
     DEFAULT_TTL = 3600           # 默认 1 小时过期
     MAX_ENTRIES = 100
     
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: Dict[str, Any] = None, embedding_provider: Any = None):
         self.config = config or {}
         self.entries: Dict[str, MemoryEntry] = {}
         self._content_hashes: set = set()
         self._lock = threading.RLock()  # I5：统一线程安全契约（单写者/锁内完成读改写）
+        # 可选真实向量索引（grok 式 KNN）：provider 为 None 时无向量召回（行为不变）
+        self._embedding_provider = embedding_provider
+        self._embeddings: Dict[str, List[float]] = {}
+        self._vector_index = None
+        if self._embedding_provider is not None:
+            self._dim = len(self._embedding_provider.embed("__probe__"))
+            self._vector_index = VectorIndex(dim=self._dim)
+            _rebuild_vector_index(self._embedding_provider, self._vector_index,
+                                  self._embeddings, self.entries)
 
     def store(self, content: str, category: str = "temp", importance: float = 0.5,
               tags: List[str] = None, ttl: int = None) -> Optional[str]:
@@ -118,6 +174,9 @@ class WorkspaceMemory:
 
             self.entries[entry_id] = entry
             self._content_hashes.add(content_hash)
+            # 真实向量持久化 + KNN 索引（provider 注入时启用）
+            _vector_index_add(self._embedding_provider, self._vector_index,
+                              self._embeddings, entry_id, content)
 
             if len(self.entries) > self.MAX_ENTRIES:
                 self._evict_to_capacity()
@@ -143,6 +202,13 @@ class WorkspaceMemory:
                     entry.access_count += 1
                     entry.last_accessed = datetime.now().isoformat()
                     results.append((entry, score))
+
+            # 真实向量 KNN 召回（grok 式）：provider 注入时启用，独立于关键词重叠
+            if self._vector_index is not None:
+                seen_ids = {e.id for e, _ in results}
+                results.extend(_vector_recall(
+                    self._embedding_provider, self._vector_index, self._embeddings,
+                    self.entries, query, top_k, min_score, seen_ids))
 
             # 分数归一化到 [0,1] + 阈值过滤（I3）
             normalized = [
@@ -198,16 +264,26 @@ class UserMemory:
     
     MAX_ENTRIES = 1000
     
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: Dict[str, Any] = None, embedding_provider: Any = None):
         self.config = config or {}
         self.entries: Dict[str, MemoryEntry] = {}
         self._content_hashes: set = set()
         self._storage_path = self.config.get("storage_path", "")
         self._last_flush = 0.0
         self._lock = threading.RLock()  # I5：统一线程安全契约
+        # 可选真实向量索引（grok 式 KNN）
+        self._embedding_provider = embedding_provider
+        self._embeddings: Dict[str, List[float]] = {}
+        self._vector_index = None
         if self._storage_path:
             self._load()
-    
+        if self._embedding_provider is not None:
+            self._dim = len(self._embedding_provider.embed("__probe__"))
+            self._vector_index = VectorIndex(dim=self._dim)
+            # 从已加载的持久化条目重建向量索引（重启一致性）
+            _rebuild_vector_index(self._embedding_provider, self._vector_index,
+                                  self._embeddings, self.entries)
+
     def store(self, content: str, category: str = "preference", importance: float = 0.5,
               tags: List[str] = None, source: str = "user") -> Optional[str]:
         with self._lock:
@@ -229,6 +305,9 @@ class UserMemory:
 
             self.entries[entry_id] = entry
             self._content_hashes.add(content_hash)
+            # 真实向量持久化 + KNN 索引（provider 注入时启用）
+            _vector_index_add(self._embedding_provider, self._vector_index,
+                              self._embeddings, entry_id, content)
 
             if len(self.entries) > self.MAX_ENTRIES:
                 self._evict_low_importance()
@@ -256,6 +335,13 @@ class UserMemory:
                     entry.access_count += 1
                     entry.last_accessed = datetime.now().isoformat()
                     results.append((entry, score))
+
+            # 真实向量 KNN 召回（grok 式）：provider 注入时启用，独立于关键词重叠
+            if self._vector_index is not None:
+                seen_ids = {e.id for e, _ in results}
+                results.extend(_vector_recall(
+                    self._embedding_provider, self._vector_index, self._embeddings,
+                    self.entries, query, top_k, min_score, seen_ids))
 
             # 分数归一化到 [0,1] + 阈值过滤（I3）
             normalized = [
@@ -356,16 +442,26 @@ class GlobalMemory:
     - 高优先级持久化
     """
     
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: Dict[str, Any] = None, embedding_provider: Any = None):
         self.config = config or {}
         self.entries: Dict[str, MemoryEntry] = {}
         self._content_hashes: set = set()
         self._storage_path = self.config.get("storage_path", "")
         self._last_flush = 0.0
         self._lock = threading.RLock()  # I5：统一线程安全契约
+        # 可选真实向量索引（grok 式 KNN）
+        self._embedding_provider = embedding_provider
+        self._embeddings: Dict[str, List[float]] = {}
+        self._vector_index = None
         if self._storage_path:
             self._load()
-    
+        if self._embedding_provider is not None:
+            self._dim = len(self._embedding_provider.embed("__probe__"))
+            self._vector_index = VectorIndex(dim=self._dim)
+            # 从已加载的持久化条目重建向量索引（重启一致性）
+            _rebuild_vector_index(self._embedding_provider, self._vector_index,
+                                  self._embeddings, self.entries)
+
     def store(self, content: str, category: str = "knowledge", importance: float = 0.7,
               tags: List[str] = None, source: str = "system") -> Optional[str]:
         with self._lock:
@@ -387,6 +483,9 @@ class GlobalMemory:
 
             self.entries[entry_id] = entry
             self._content_hashes.add(content_hash)
+            # 真实向量持久化 + KNN 索引（provider 注入时启用）
+            _vector_index_add(self._embedding_provider, self._vector_index,
+                              self._embeddings, entry_id, content)
 
             if self._storage_path:
                 self._save()
@@ -409,6 +508,13 @@ class GlobalMemory:
 
                 if score > 0:
                     results.append((entry, score))
+
+            # 真实向量 KNN 召回（grok 式）：provider 注入时启用，独立于关键词重叠
+            if self._vector_index is not None:
+                seen_ids = {e.id for e, _ in results}
+                results.extend(_vector_recall(
+                    self._embedding_provider, self._vector_index, self._embeddings,
+                    self.entries, query, top_k, min_score, seen_ids))
 
             # 分数归一化到 [0,1] + 阈值过滤（I3）
             normalized = [
@@ -487,11 +593,13 @@ class HybridMemory:
     ```
     """
     
-    def __init__(self, config: Dict[str, Any] = None):
+    def __init__(self, config: Dict[str, Any] = None, embedding_provider: Any = None):
         self.config = config or {}
-        self.workspace = WorkspaceMemory(self.config.get("workspace", {}))
-        self.user = UserMemory(self.config.get("user", {}))
-        self.global_mem = GlobalMemory(self.config.get("global", {}))
+        # 可选真实向量索引（grok 式 KNN）：provider 为 None 时三层子记忆均无向量召回
+        self._embedding_provider = embedding_provider
+        self.workspace = WorkspaceMemory(self.config.get("workspace", {}), embedding_provider)
+        self.user = UserMemory(self.config.get("user", {}), embedding_provider)
+        self.global_mem = GlobalMemory(self.config.get("global", {}), embedding_provider)
     
     def store(self, content: str, tier: MemoryTier = MemoryTier.WORKSPACE,
               category: str = "general", importance: float = 0.5,
